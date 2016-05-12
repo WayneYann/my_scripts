@@ -1,11 +1,13 @@
 """
 Perform single point energy calculations in solvent on a set of gas phase
-reactant and TS geometries in a database.
+reactant geometries (gets list from database and geometry from existing gas
+phase calculations)
 """
 import sqlite3
 import openbabel as ob
 from subprocess import Popen
 import os
+from shutil import copy
 import sys
 from rmgpy.molecule import Molecule
 
@@ -22,44 +24,68 @@ print "Opened database successfully"
 family = 'intra_H_migration'
 solvent = 'n-octane'
 
-geometries = conn.execute("SELECT uniqueID, geometry FROM TSData WHERE rxnFamily=\'" + family + "\'") # returns cursor
+geometries = conn.execute("SELECT uniqueID, r1 FROM (SELECT * from TSData WHERE rxnFamily=\'" + family + "\') WHERE method='m062x'") # returns cursor
 geometries = list(geometries.fetchall()) # make into list
 entry = geometries[i-1]
-#for n, entry in enumerate(geometries):
-# Convert the geometry to xyz
-obConversion = ob.OBConversion()
-obConversion.SetInAndOutFormats("cml", "xyz")
-mol = ob.OBMol()
-obConversion.ReadString(mol, entry[1].encode('utf8'))
-xyz_geom = obConversion.WriteString(mol)
-# if n==0:
-#     print entry[0].encode('utf8')
-#     print xyz_geom
-rmg_mol = Molecule().fromSMILES(entry[0].encode('utf8').split('_')[0]) # for intra-H!
-mult = rmg_mol.multiplicity
-xyz_geom = "0 {0}\n".format(mult) + '\n'.join(xyz_geom.split('\n')[2:])
-# if n==0:
-#     print obConversion.WriteString(mol)
-#     print rmg_mol.toAdjacencyList()
-#     print xyz_geom
 
 # Check for folder
 reaction_folder = os.path.join("/home/slakman.b/Gaussian/SMD/", family, entry[0].encode('utf8'))
 if not os.path.exists(reaction_folder):
-    os.makedirs(reaction_folder)
+	os.makedirs(reaction_folder)
 
-# Write input file
-options = "%mem=1GB\n%nprocshared=10"
-keywords = "# m062x/6-311+G(2df,2p) scrf(smd, solvent=" + solvent +") int=ultrafine freq nosymm"
-title = entry[0].encode('utf8')
+err_message = None
+# Find reactant gas-phase output file in scratch and copy to my reaction folder
+try:
+	gas_phase_output = os.path.join('/scratch/bhoorasingh.p/QMscratch/Species', entry[1], 'm062x', entry[1] + ".log")
+	copy(gas_phase_output, reaction_folder)
+	gas_phase_output = os.path.join(reaction_folder, entry[1] + ".log")
+except:
+	err_message = "Gas phase output file not found for {0}".format(entry[1])
 
-input_file_path = os.path.join(reaction_folder, "ts_" + solvent)
-input_file_ext = ".gjf"
-input_file = open(input_file_path + input_file_ext, 'w')
-input_file.write(options + "\n" + keywords + "\n\n" + title + "\n\n" + xyz_geom + "\n")
-input_file.close()
+if err_message is None:
+	# Extract geometry from gas-phase output
+	xyz_geom = ""
+	rev_gfop = reversed(open(gas_phase_output, r).readlines())
+	geom_start = len(rev_gfop)
+	for i, line in ennumerate(rev_gfop):
+		if "Input orientation" in line:
+			geom_start = i-5
+			geom_end = i-5
+			while !rev_gfop[geom_end].startswith('-'):
+				geom_end -= 1
+			break
 
-# submits the input file to Gaussian
-#import ipdb; ipdb.set_trace()
-process = Popen(["/shared/apps/gaussian/G09_LINUX_LINDA/g09/g09", input_file_path + ".gjf", input_file_path + ".log"])
-process.communicate() # necessary to wait for executable termination!
+	for atom_line in reversed(rev_gfop(geom_end+1:geom_start+1)):
+		atomic_number = atom_line.split()[1]
+		coordinates = atom_line.split()[-3:]
+		if atomic_number == 6: element = "C"
+	    elif atomic_number == 1: element = "H"
+	    elif atomic_number == 8: element = "O"
+        else: element = "x"
+		xyz_geom.append("{0}\t{1} {2} {3}\n".format(element, coordinates[0], coordinates[1], coordinates[2]))
+
+	# multiplicity
+	rmg_mol = Molecule().fromSMILES(entry[1]) # for intra-H!
+	mult = rmg_mol.multiplicity
+	xyz_geom = "0 {0}\n".format(mult) + xyz_geom
+
+	# Write solvation input file
+	options = "%mem=1GB\n%nprocshared=10"
+	keywords = "# m062x/6-311+G(2df,2p) scrf(smd, solvent=" + solvent +") int=ultrafine freq nosymm"
+	title = entry[0].encode('utf8')
+
+	input_file_path = os.path.join(reaction_folder, entry[1] + "_" + solvent)
+	input_file_ext = ".gjf"
+	input_file = open(input_file_path + input_file_ext, 'w')
+	input_file.write(options + "\n" + keywords + "\n\n" + title + "\n\n" + xyz_geom + "\n")
+	input_file.close()
+
+	# submits the input file to Gaussian
+	#import ipdb; ipdb.set_trace()
+	process = Popen(["/shared/apps/gaussian/G09_LINUX_LINDA/g09/g09", input_file_path + ".gjf", input_file_path + ".log"])
+	process.communicate() # necessary to wait for executable termination!
+
+else:
+	err_file = open(os.path.join(reaction_folder, "err.txt"), w)
+	err_file.write(err_message)
+	err_file.close()
