@@ -45,24 +45,24 @@ except:
 if err_message is None:
 	# Extract geometry from gas-phase output
 	xyz_geom = ""
-	rev_gfop = reversed(open(gas_phase_output, r).readlines())
+	rev_gfop = reversed(open(gas_phase_output, 'r').readlines())
 	geom_start = len(rev_gfop)
 	for i, line in ennumerate(rev_gfop):
 		if "Input orientation" in line:
 			geom_start = i-5
 			geom_end = i-5
-			while !rev_gfop[geom_end].startswith('-'):
+			while not rev_gfop[geom_end].startswith('-'):
 				geom_end -= 1
 			break
 
-	for atom_line in reversed(rev_gfop(geom_end+1:geom_start+1)):
-		atomic_number = atom_line.split()[1]
-		coordinates = atom_line.split()[-3:]
-		if atomic_number == 6: element = "C"
+	for atom_line in reversed(rev_gfop[geom_end+1:geom_start+1]):
+	    atomic_number = atom_line.split()[1]
+	    coordinates = atom_line.split()[-3:]
+	    if atomic_number == 6: element = "C"
 	    elif atomic_number == 1: element = "H"
 	    elif atomic_number == 8: element = "O"
-        else: element = "x"
-		xyz_geom.append("{0}\t{1} {2} {3}\n".format(element, coordinates[0], coordinates[1], coordinates[2]))
+            else: element = "x"
+            xyz_geom.append("{0}\t{1} {2} {3}\n".format(element, coordinates[0], coordinates[1], coordinates[2]))
 
 	# multiplicity
 	rmg_mol = Molecule().fromSMILES(entry[1]) # for intra-H!
