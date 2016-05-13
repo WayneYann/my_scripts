@@ -1,77 +1,85 @@
-#Script written by Pierre, and modified by Belinda.
+# Script written by Pierre, and modified by Belinda.
 
 from cclib import parser
 import argparse
 import collections
 import os
 
-solventList = ["", "_water", "_n-octane", "_benzene", "_pyridine", "_tetrahydrofuran", "_dichloromethane", "_acetonitrile", "_dimethylsulfoxide"]
+solventList = ['_n-octane']#["", "_water", "_n-octane", "_benzene", "_pyridine", "_tetrahydrofuran", "_dichloromethane", "_acetonitrile", "_dimethylsulfoxide"]
 
 clParser = argparse.ArgumentParser(description="""
-Given a reaction family and reactants, will get TS energies from Gaussian output files in
+Given a reaction family, will get TS energies from Gaussian output files in
 different solvents
 """)
-clParser.add_argument("-f", "--family", default="H_Abs", help="Name of the family")
-clParser.add_argument("-r", "--reactants", nargs='+', help="list of reactants (strings)")
-clParser.add_argument("-o", "--optional", default = "", nargs='+', help="""
-optional stuff that tells you about the reacting site like CH or prim...
-""")
+clParser.add_argument("-f", "--family", default="H_Abstraction", help="Name of the family")
+#clParser.add_argument("-r", "--reactants", nargs='+', help="list of reactants (strings)")
+#clParser.add_argument("-o", "--optional", default = "", nargs='+', help="""\
+#optional stuff that tells you about the reacting site like CH or prim...
+#""")
 args = clParser.parse_args()
-directory = os.path.join(os.getcwd(), args.family, "+".join(args.reactants), *args.optional)
-r1_loc = os.path.join(os.getcwd(), "species", args.reactants[0])
-if len(args.reactants) > 1:
-    r2_loc = os.path.join(os.getcwd(), "species", args.reactants[1])
+directory = os.path.join("/home/slakman.b/Gaussian/SMD/", args.family)
 
-for solvent in solventList:
-    print "Solvent: " + solvent
-    reactantOutput = r1_loc + solvent + ".log"
-    if len(args.reactants) > 1:
-        reactant2Output = r2_loc + solvent + ".log"
-    tsOutput = directory + "ts" + solvent + ".log"
+# Go through all of the reactions for that family
+for rxn_folder in os.listdir(directory):
+    rxn_directory = os.path.join(directory, rxn_folder)
 
-    rParse = parser.Gaussian(reactantOutput)
-    tsParse = parser.Gaussian(tsOutput)
-
-    rParse = rParse.parse()
-    tsParse = tsParse.parse()
-
-    # In Hartrees
-    reactantE = rParse.scfenergies[-1]/27.2113845
-    tsE = tsParse.scfenergies[-1]/27.2113845
-    tsVib = tsParse.vibfreqs[0]
-
-    if reactant2Output is not None:
-        r2Parse = parser.Gaussian(reactant2Output)
-        r2Parse = r2Parse.parse()
-        reactant2E = r2Parse.scfenergies[-1]/27.2113845
+    if '+' in rxn_folder: # bimolecular
+        r1 = rxn_folder.split('_')[0].split('+')[0]
+        r2 = rxn_folder.split('_')[0].split('+')[1]
     else:
-        reactant2E = 0.0
+        r1 = rxn_folder.split('_')[0] # unimolecular
 
-    Ea = (tsE - reactantE - reactant2E) * 2600
-    if solvent is "":
-        gasEa = Ea
-    diffEa = Ea - gasEa
+    # Do for all the solvents in the list.
+    for solvent in solventList:
+        print "Solvent: " + solvent
+        reactantOutput = os.path.join(rxn_directory, r1 + solvent + ".log")
+        if r2:
+            reactant2Output = os.path.join(rxn_directory, r2 + solvent + ".log")
+        tsOutput = os.path.join(rxn_directory, "ts" + solvent + ".log")
 
-    rString = 'Reactant energy = ' + str(reactantE)
-    r2String = 'Reactant 2 energy = ' + str(reactant2E)
-    tEnergy = 'TS energy       = ' + str(tsE)
-    EaString = 'Activation energy (in kJ/mol)     = ' + str(Ea)
-    tVib    = 'TS vib          = ' + str(tsVib)
-    diffString = 'Difference in activation energy from gas phase (in kJ/mol)   = ' + str(diffEa)
+        rParse = parser.Gaussian(reactantOutput)
+        tsParse = parser.Gaussian(tsOutput)
 
-    outputDataFile = "SMD/H_Abs/OOH_C3OH/CH/sec/output" + solvent+ ".txt"
+        rParse = rParse.parse()
+        tsParse = tsParse.parse()
 
-    with open(outputDataFile, 'w') as parseFile:
-        parseFile.write('The energies of the species in Hartree are:')
-        parseFile.write('\n')
-        parseFile.write(rString)
-        parseFile.write('\n')
-        parseFile.write(r2String)
-        parseFile.write('\n')
-        parseFile.write(tEnergy)
-        parseFile.write('\n')
-        parseFile.write(tVib)
-        parseFile.write('\n')
-        parseFile.write(EaString)
-        parseFile.write('\n')
-        parseFile.write(diffString)
+        # In Hartrees
+        reactantE = rParse.scfenergies[-1]/27.2113845
+        tsE = tsParse.scfenergies[-1]/27.2113845
+        tsVib = tsParse.vibfreqs[0]
+
+        if reactant2Output is not None:
+            r2Parse = parser.Gaussian(reactant2Output)
+            r2Parse = r2Parse.parse()
+            reactant2E = r2Parse.scfenergies[-1]/27.2113845
+        else:
+            reactant2E = 0.0
+
+        Ea = (tsE - reactantE - reactant2E) * 2600
+        if solvent is "":
+            gasEa = Ea
+        diffEa = Ea - gasEa
+
+        rString = 'Reactant energy = ' + str(reactantE)
+        r2String = 'Reactant 2 energy = ' + str(reactant2E)
+        tEnergy = 'TS energy       = ' + str(tsE)
+        EaString = 'Activation energy (in kJ/mol)     = ' + str(Ea)
+        tVib    = 'TS vib          = ' + str(tsVib)
+        diffString = 'Difference in activation energy from gas phase (in kJ/mol)   = ' + str(diffEa)
+
+        outputDataFile = os.path.join(rxn_directory, solvent+ ".txt")
+
+        with open(outputDataFile, 'w') as parseFile:
+            parseFile.write('The energies of the species in Hartree are:')
+            parseFile.write('\n')
+            parseFile.write(rString)
+            parseFile.write('\n')
+            parseFile.write(r2String)
+            parseFile.write('\n')
+            parseFile.write(tEnergy)
+            parseFile.write('\n')
+            parseFile.write(tVib)
+            parseFile.write('\n')
+            parseFile.write(EaString)
+            parseFile.write('\n')
+            parseFile.write(diffString)
