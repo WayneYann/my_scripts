@@ -45,17 +45,16 @@ except:
 if err_message is None:
 	# Extract geometry from gas-phase output
 	xyz_geom = ""
-	rev_gfop = reversed(open(gas_phase_output, 'r').readlines())
-	geom_start = len(rev_gfop)
-	for i, line in ennumerate(rev_gfop):
-		if "Input orientation" in line:
-			geom_start = i-5
-			geom_end = i-5
-			while not rev_gfop[geom_end].startswith('-'):
-				geom_end -= 1
-			break
+	with open(gas_phase_output, 'r') as gpf:
+	    for i, line in enumerate(reversed(gpf.readlines())):
+		    if "Input orientation" in line:
+			    geom_start = i-5
+			    geom_end = i-5
+			    while not rev_gfop[geom_end].startswith('-'):
+				    geom_end -= 1
+			    break
 
-	for atom_line in reversed(rev_gfop[geom_end+1:geom_start+1]):
+	for atom_line in gpf.readlines()[geom_start:geom_end]
 	    atomic_number = atom_line.split()[1]
 	    coordinates = atom_line.split()[-3:]
 	    if atomic_number == 6: element = "C"
