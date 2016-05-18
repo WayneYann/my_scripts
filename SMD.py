@@ -78,8 +78,8 @@ for subdir, dirs, files in os.walk(data_dir):
     			for rxn0 in tempList:
     				reactionList.append(rxn0)
     elif args.family in ['intra_H_migration']:
-    	rSpecies = [Species(molecule=Molecule().fromSMILES(r)) for r in reactants]
-    	pSpecies = [Species(molecule=Molecule().fromSMILES(p)) for p in products]
+    	rSpecies = Species(molecule=[Molecule().fromSMILES(reactants[0])])
+    	pSpecies = Species(molecule=[Molecule().fromSMILES(products[0])])
     	rSpecies.generateResonanceIsomers()
     	pSpecies.generateResonanceIsomers()
     	testReaction = Reaction(reactants=[rSpecies], products=[pSpecies], reversible=True)
