@@ -44,6 +44,13 @@ if not os.path.exists(os.path.join(reaction_folder, entry[1] + ".log")):
 
 gas_phase_output = os.path.join(reaction_folder, entry[1] + ".log")
 
+# Find ts gas-phase output file in scratch and copy to my reaction folder
+try:
+	gas_phase_output_ts = os.path.join('/scratch/bhoorasingh.p/QMfiles/Reactions', entry[0], 'm062x', entry[0] + ".log")
+	copy(gas_phase_output_ts, os.path.join(reaction_folder, "ts.log"))
+except:
+	err_message = "Gas phase output file not found for {0}".format(entry[0])
+
 if err_message is None:
 	# Extract geometry from gas-phase output
 	xyz_geom = ""

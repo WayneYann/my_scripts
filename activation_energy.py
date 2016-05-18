@@ -5,7 +5,7 @@ import argparse
 import collections
 import os
 
-solventList = ['_n-octane']#["", "_water", "_n-octane", "_benzene", "_pyridine", "_tetrahydrofuran", "_dichloromethane", "_acetonitrile", "_dimethylsulfoxide"]
+solventList = ['', '_n-octane']#["", "_water", "_n-octane", "_benzene", "_pyridine", "_tetrahydrofuran", "_dichloromethane", "_acetonitrile", "_dimethylsulfoxide"]
 
 clParser = argparse.ArgumentParser(description="""
 Given a reaction family, will get TS energies from Gaussian output files in
@@ -37,49 +37,50 @@ for rxn_folder in os.listdir(directory):
             reactant2Output = os.path.join(rxn_directory, r2 + solvent + ".log")
         tsOutput = os.path.join(rxn_directory, "ts" + solvent + ".log")
 
-        rParse = parser.Gaussian(reactantOutput)
-        tsParse = parser.Gaussian(tsOutput)
-
-        rParse = rParse.parse()
-        tsParse = tsParse.parse()
-
-        # In Hartrees
-        reactantE = rParse.scfenergies[-1]/27.2113845
-        tsE = tsParse.scfenergies[-1]/27.2113845
-        tsVib = tsParse.vibfreqs[0]
-
-        if reactant2Output is not None:
-            r2Parse = parser.Gaussian(reactant2Output)
-            r2Parse = r2Parse.parse()
-            reactant2E = r2Parse.scfenergies[-1]/27.2113845
-        else:
-            reactant2E = 0.0
-
-        Ea = (tsE - reactantE - reactant2E) * 2600
-        if solvent is "":
-            gasEa = Ea
-        diffEa = Ea - gasEa
-
-        rString = 'Reactant energy = ' + str(reactantE)
-        r2String = 'Reactant 2 energy = ' + str(reactant2E)
-        tEnergy = 'TS energy       = ' + str(tsE)
-        EaString = 'Activation energy (in kJ/mol)     = ' + str(Ea)
-        tVib    = 'TS vib          = ' + str(tsVib)
-        diffString = 'Difference in activation energy from gas phase (in kJ/mol)   = ' + str(diffEa)
-
         outputDataFile = os.path.join(rxn_directory, solvent+ ".txt")
 
-        with open(outputDataFile, 'w') as parseFile:
-            parseFile.write('The energies of the species in Hartree are:')
-            parseFile.write('\n')
-            parseFile.write(rString)
-            parseFile.write('\n')
-            parseFile.write(r2String)
-            parseFile.write('\n')
-            parseFile.write(tEnergy)
-            parseFile.write('\n')
-            parseFile.write(tVib)
-            parseFile.write('\n')
-            parseFile.write(EaString)
-            parseFile.write('\n')
-            parseFile.write(diffString)
+        if os.path.exists(reactantOutput) and os.path.exists(tsOutput) and not os.path.exists(outputDataFile):
+            rParse = parser.Gaussian(reactantOutput)
+            tsParse = parser.Gaussian(tsOutput)
+
+            rParse = rParse.parse()
+            tsParse = tsParse.parse()
+
+            # In Hartrees
+            reactantE = rParse.scfenergies[-1]/27.2113845
+            tsE = tsParse.scfenergies[-1]/27.2113845
+            tsVib = tsParse.vibfreqs[0]
+
+            if reactant2Output is not None:
+                r2Parse = parser.Gaussian(reactant2Output)
+                r2Parse = r2Parse.parse()
+                reactant2E = r2Parse.scfenergies[-1]/27.2113845
+            else:
+                reactant2E = 0.0
+
+            Ea = (tsE - reactantE - reactant2E) * 2600
+            if solvent is "":
+                gasEa = Ea
+            diffEa = Ea - gasEa
+
+            rString = 'Reactant energy = ' + str(reactantE)
+            r2String = 'Reactant 2 energy = ' + str(reactant2E)
+            tEnergy = 'TS energy       = ' + str(tsE)
+            EaString = 'Activation energy (in kJ/mol)     = ' + str(Ea)
+            tVib    = 'TS vib          = ' + str(tsVib)
+            diffString = 'Difference in activation energy from gas phase (in kJ/mol)   = ' + str(diffEa)
+
+            with open(outputDataFile, 'w') as parseFile:
+                parseFile.write('The energies of the species in Hartree are:')
+                parseFile.write('\n')
+                parseFile.write(rString)
+                parseFile.write('\n')
+                parseFile.write(r2String)
+                parseFile.write('\n')
+                parseFile.write(tEnergy)
+                parseFile.write('\n')
+                parseFile.write(tVib)
+                parseFile.write('\n')
+                parseFile.write(EaString)
+                parseFile.write('\n')
+                parseFile.write(diffString)
