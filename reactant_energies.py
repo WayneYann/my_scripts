@@ -35,43 +35,42 @@ if not os.path.exists(reaction_folder):
 
 err_message = None
 # Find reactant gas-phase output file in scratch and copy to my reaction folder
-try:
-	gas_phase_output = os.path.join('/scratch/bhoorasingh.p/QMscratch/Species', entry[1], 'm062x', entry[1] + ".log")
-	copy(gas_phase_output, reaction_folder)
-	gas_phase_output = os.path.join(reaction_folder, entry[1] + ".log")
-except:
+if not os.path.exists(os.path.join(reaction_folder, entry[1] + ".log")):
+    try:
+    	gas_phase_output = os.path.join('/scratch/bhoorasingh.p/QMscratch/Species', entry[1], 'm062x', entry[1] + ".log")
+    	copy(gas_phase_output, reaction_folder)
+    except:
 	err_message = "Gas phase output file not found for {0}".format(entry[1])
+
+gas_phase_output = os.path.join(reaction_folder, entry[1] + ".log")
 
 if err_message is None:
 	# Extract geometry from gas-phase output
 	xyz_geom = ""
 	with open(gas_phase_output, 'r') as gpf:
-	    for i, line in enumerate(reversed(gpf.readlines())):
-		    if "Input orientation" in line:
-			    geom_start = i-5
-			    geom_end = i-5
-			    while not rev_gfop[geom_end].startswith('-'):
-				    geom_end -= 1
-			    break
+            lines = gpf.read().split('\n')
+            input_geoms = [i for i,x in enumerate(lines) if 'Input orientation' in x]
+	    geom_start = input_geoms[-1] + 5
+	    geom_end = [lines[geom_start:].index(l) for l in lines[geom_start:] if "---" in l][0] + geom_start
 
-	for atom_line in gpf.readlines()[geom_start:geom_end]
-	    atomic_number = atom_line.split()[1]
+	for atom_line in lines[geom_start:geom_end]:
+	    atomic_number = int(atom_line.split()[1])
 	    coordinates = atom_line.split()[-3:]
 	    if atomic_number == 6: element = "C"
 	    elif atomic_number == 1: element = "H"
 	    elif atomic_number == 8: element = "O"
             else: element = "x"
-            xyz_geom.append("{0}\t{1} {2} {3}\n".format(element, coordinates[0], coordinates[1], coordinates[2]))
+            xyz_geom += "{0}\t{1} {2} {3}\n".format(element, coordinates[0], coordinates[1], coordinates[2])
 
 	# multiplicity
-	rmg_mol = Molecule().fromSMILES(entry[1]) # for intra-H!
+	rmg_mol = Molecule().fromSMILES(entry[1].encode('utf8')) # for intra-H!
 	mult = rmg_mol.multiplicity
 	xyz_geom = "0 {0}\n".format(mult) + xyz_geom
 
 	# Write solvation input file
 	options = "%mem=1GB\n%nprocshared=10"
 	keywords = "# m062x/6-311+G(2df,2p) scrf(smd, solvent=" + solvent +") int=ultrafine freq nosymm"
-	title = entry[0].encode('utf8')
+	title = entry[1].encode('utf8')
 
 	input_file_path = os.path.join(reaction_folder, entry[1] + "_" + solvent)
 	input_file_ext = ".gjf"
