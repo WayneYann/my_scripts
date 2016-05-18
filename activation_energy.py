@@ -17,7 +17,7 @@ clParser.add_argument("-f", "--family", default="H_Abstraction", help="Name of t
 #optional stuff that tells you about the reacting site like CH or prim...
 #""")
 args = clParser.parse_args()
-directory = os.path.join("/home/slakman.b/Gaussian/SMD/", args.family)
+directory = os.path.join("/Users/belinda/Gaussian/SMD/", args.family)
 
 # Go through all of the reactions for that family
 for rxn_folder in os.listdir(directory):
@@ -28,6 +28,7 @@ for rxn_folder in os.listdir(directory):
         r2 = rxn_folder.split('_')[0].split('+')[1]
     else:
         r1 = rxn_folder.split('_')[0] # unimolecular
+        r2 = None
 
     # Do for all the solvents in the list.
     for solvent in solventList:
@@ -35,9 +36,10 @@ for rxn_folder in os.listdir(directory):
         reactantOutput = os.path.join(rxn_directory, r1 + solvent + ".log")
         if r2:
             reactant2Output = os.path.join(rxn_directory, r2 + solvent + ".log")
+        else: reactant2Output = None
         tsOutput = os.path.join(rxn_directory, "ts" + solvent + ".log")
 
-        outputDataFile = os.path.join(rxn_directory, solvent+ ".txt")
+        outputDataFile = os.path.join(rxn_directory, "output" + solvent+ ".txt")
 
         if os.path.exists(reactantOutput) and os.path.exists(tsOutput) and not os.path.exists(outputDataFile):
             rParse = parser.Gaussian(reactantOutput)
