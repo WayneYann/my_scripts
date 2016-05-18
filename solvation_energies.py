@@ -1,6 +1,6 @@
 """
 Perform single point energy calculations in solvent on a set of gas phase
-reactant and TS geometries in a database.
+TS geometries in a database.
 """
 import sqlite3
 import openbabel as ob
