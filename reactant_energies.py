@@ -65,7 +65,7 @@ if not os.path.exists(os.path.join(reaction_folder, entry[1] + ".log")):
 if len(entry) > 2:
 	if not os.path.exists(os.path.join(reaction_folder, entry[2] + ".log")):
 		try:
-			gas_phase_output2 = os.path.join('/scratch/bhoorasingh.p/QMscratch/Species', entry[1], 'm062x', entry[1] + ".log")
+			gas_phase_output2 = os.path.join('/scratch/bhoorasingh.p/QMscratch/Species', entry[2], 'm062x', entry[2] + ".log")
 			copy(gas_phase_output2, reaction_folder)
 		except:
 			err_message = "Gas phase output file not found for {0}".format(entry[2])
@@ -73,7 +73,7 @@ if len(entry) > 2:
 gas_phase_output = os.path.join(reaction_folder, entry[1] + ".log")
 gas_phase_output2 = None
 if len(entry) > 2:
-    gas_phase_output2 = os.path.join(reaction_folder, entry[1] + ".log")
+    gas_phase_output2 = os.path.join(reaction_folder, entry[2] + ".log")
 
 # Find ts gas-phase output file in scratch and copy to my reaction folder
 try:
@@ -84,9 +84,11 @@ except:
 
 if err_message is None:
 	if gas_phase_output2 is not None: gp_outputs = [[gas_phase_output, entry[1]], [gas_phase_output2, entry[2]]]
-    else: gp_outputs = [[gas_phase_output, entry[1]]
+        else: gp_outputs = [[gas_phase_output, entry[1]]]
 	# Extract geometry from gas-phase output
-	for gp, smiles in gp_outputs:
+	for g in gp_outputs:
+                gp = g[0]
+                smiles = g[1] 
 		xyz_geom = ""
 		with open(gp, 'r') as gpf:
 	            lines = gpf.read().split('\n')
@@ -124,7 +126,6 @@ if err_message is None:
 		process = Popen(["/shared/apps/gaussian/G09_LINUX_LINDA/g09/g09", input_file_path + ".gjf", input_file_path + ".log"])
 		process.communicate() # necessary to wait for executable termination!
 
-	else:
-		err_file = open(os.path.join(reaction_folder, "err.txt"), 'w')
-		err_file.write(err_message)
-		err_file.close()
+else:
+    with open(os.path.join(reaction_folder, "err.txt"), 'w') as err_file:
+        err_file.write(str(err_message))
