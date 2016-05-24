@@ -83,8 +83,8 @@ except:
 	err_message = "Gas phase output file not found for {0}".format(entry[0])
 
 if err_message is None:
-        if gas_phase_output2 is not None: gp_outputs = [[gas_phase_output, entry[1]], [gas_phase_output2, entry[2]]]
-        else: gp_outputs = [[gas_phase_output, entry[1]]
+	if gas_phase_output2 is not None: gp_outputs = [[gas_phase_output, entry[1]], [gas_phase_output2, entry[2]]]
+    else: gp_outputs = [[gas_phase_output, entry[1]]
 	# Extract geometry from gas-phase output
 	for gp, smiles in gp_outputs:
 		xyz_geom = ""
