@@ -87,44 +87,50 @@ if err_message is None:
         else: gp_outputs = [[gas_phase_output, entry[1]]]
 	# Extract geometry from gas-phase output
 	for g in gp_outputs:
-                gp = g[0]
-                smiles = g[1] 
-		xyz_geom = ""
-		with open(gp, 'r') as gpf:
-	            lines = gpf.read().split('\n')
-	            input_geoms = [i for i,x in enumerate(lines) if 'Input orientation' in x]
-		    geom_start = input_geoms[-1] + 5
-		    geom_end = [lines[geom_start:].index(l) for l in lines[geom_start:] if "---" in l][0] + geom_start
+		gp = g[0]
+        smiles = g[1]
+		# Check for liquid phase output in another folder.
+		for folder in os.listdir(os.path.join("/home/slakman.b/Gaussian/SMD/", family)):
+			if os.path.exists(os.path.join("/home/slakman.b/Gaussian/SMD/", family, folder, smiles.encode('utf8') + "_" + solvent + ".log")):
+				copy(os.path.join("/home/slakman.b/Gaussian/SMD/", family, folder, smiles.encode('utf8') + "_" + solvent + ".log"), reaction_folder)
+				break
+		if not os.path.exists(os.path.join(reaction_folder, smiles.encode('utf8') + "_" + solvent + ".log")):
+			xyz_geom = ""
+			with open(gp, 'r') as gpf:
+		            lines = gpf.read().split('\n')
+		            input_geoms = [i for i,x in enumerate(lines) if 'Input orientation' in x]
+			    geom_start = input_geoms[-1] + 5
+			    geom_end = [lines[geom_start:].index(l) for l in lines[geom_start:] if "---" in l][0] + geom_start
 
-		for atom_line in lines[geom_start:geom_end]:
-		    atomic_number = int(atom_line.split()[1])
-		    coordinates = atom_line.split()[-3:]
-		    if atomic_number == 6: element = "C"
-		    elif atomic_number == 1: element = "H"
-		    elif atomic_number == 8: element = "O"
-	            else: element = "x"
-	            xyz_geom += "{0}\t{1} {2} {3}\n".format(element, coordinates[0], coordinates[1], coordinates[2])
+			for atom_line in lines[geom_start:geom_end]:
+			    atomic_number = int(atom_line.split()[1])
+			    coordinates = atom_line.split()[-3:]
+			    if atomic_number == 6: element = "C"
+			    elif atomic_number == 1: element = "H"
+			    elif atomic_number == 8: element = "O"
+		            else: element = "x"
+		            xyz_geom += "{0}\t{1} {2} {3}\n".format(element, coordinates[0], coordinates[1], coordinates[2])
 
-		# multiplicity
-		rmg_mol = Molecule().fromSMILES(smiles.encode('utf8'))
-		mult = rmg_mol.multiplicity
-		xyz_geom = "0 {0}\n".format(mult) + xyz_geom
+			# multiplicity
+			rmg_mol = Molecule().fromSMILES(smiles.encode('utf8'))
+			mult = rmg_mol.multiplicity
+			xyz_geom = "0 {0}\n".format(mult) + xyz_geom
 
-		# Write solvation input file
-		options = "%mem=5GB\n%nprocshared=10"
-		keywords = "# m062x/6-311+G(2df,2p) scrf(smd, solvent=" + solvent +") int=ultrafine freq nosymm"
-		title = smiles.encode('utf8')
+			# Write solvation input file
+			options = "%mem=5GB\n%nprocshared=10"
+			keywords = "# m062x/6-311+G(2df,2p) scrf(smd, solvent=" + solvent +") int=ultrafine freq nosymm"
+			title = smiles.encode('utf8')
 
-		input_file_path = os.path.join(reaction_folder, smiles + "_" + solvent)
-		input_file_ext = ".gjf"
-		input_file = open(input_file_path + input_file_ext, 'w')
-		input_file.write(options + "\n" + keywords + "\n\n" + title + "\n\n" + xyz_geom + "\n")
-		input_file.close()
+			input_file_path = os.path.join(reaction_folder, smiles + "_" + solvent)
+			input_file_ext = ".gjf"
+			input_file = open(input_file_path + input_file_ext, 'w')
+			input_file.write(options + "\n" + keywords + "\n\n" + title + "\n\n" + xyz_geom + "\n")
+			input_file.close()
 
-		# submits the input file to Gaussian
-		#import ipdb; ipdb.set_trace()
-		process = Popen(["/shared/apps/gaussian/G09_LINUX_LINDA/g09/g09", input_file_path + ".gjf", input_file_path + ".log"])
-		process.communicate() # necessary to wait for executable termination!
+			# submits the input file to Gaussian
+			#import ipdb; ipdb.set_trace()
+			process = Popen(["/shared/apps/gaussian/G09_LINUX_LINDA/g09/g09", input_file_path + ".gjf", input_file_path + ".log"])
+			process.communicate() # necessary to wait for executable termination!
 
 else:
     with open(os.path.join(reaction_folder, "err.txt"), 'w') as err_file:
