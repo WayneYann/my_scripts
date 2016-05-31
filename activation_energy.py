@@ -32,7 +32,6 @@ for rxn_folder in os.listdir(directory):
 
     # Do for all the solvents in the list.
     for solvent in solventList:
-        print "Solvent: " + solvent
         reactantOutput = os.path.join(rxn_directory, r1 + solvent + ".log")
         if r2:
             reactant2Output = os.path.join(rxn_directory, r2 + solvent + ".log")
@@ -45,8 +44,14 @@ for rxn_folder in os.listdir(directory):
             rParse = parser.Gaussian(reactantOutput)
             tsParse = parser.Gaussian(tsOutput)
 
-            rParse = rParse.parse()
-            tsParse = tsParse.parse()
+            try:
+                rParse = rParse.parse()
+            except AssertionError:
+                continue
+            try:
+                tsParse = tsParse.parse()
+            except AssertionError:
+                continue
 
             # In Hartrees
             reactantE = rParse.scfenergies[-1]/27.2113845
@@ -55,7 +60,10 @@ for rxn_folder in os.listdir(directory):
 
             if reactant2Output is not None:
                 r2Parse = parser.Gaussian(reactant2Output)
-                r2Parse = r2Parse.parse()
+                try:
+                    r2Parse = r2Parse.parse()
+                except AssertionError:
+                    continue
                 reactant2E = r2Parse.scfenergies[-1]/27.2113845
             else:
                 reactant2E = 0.0
@@ -63,7 +71,10 @@ for rxn_folder in os.listdir(directory):
             Ea = (tsE - reactantE - reactant2E) * 2600
             if solvent is "":
                 gasEa = Ea
-            diffEa = Ea - gasEa
+            try:
+                diffEa = Ea - gasEa
+            except NameError:
+                continue
 
             rString = 'Reactant energy = ' + str(reactantE)
             r2String = 'Reactant 2 energy = ' + str(reactant2E)
