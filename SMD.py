@@ -39,7 +39,7 @@ out.write("""
 #!/usr/bin/env python
 # encoding: utf-8
 
-name = \"H_Abstraction\/training\"
+name = \"""" + args.family + """\/training\"
 shortDesc = u\"A list of solvation reactions used to train group additivity values\"
 longDesc = u\"\"\"
 \"\"\"
@@ -153,8 +153,8 @@ for subdir, dirs, files in os.walk(data_dir):
     out = open(output_file, 'a')
     out.write('entry( \n')
     out.write('    index = ' + str(index) + ', \n')
-    out.write('    reactants = [\'' + ", ".join(reactants) + '\'], \n')
-    out.write('    products = [\'' + ", ".join(products) + '\'], \n')
+    out.write('    reactants = [\'' + "\' , \'".join(reactants) + '\'], \n')
+    out.write('    products = [\'' + "\' , \'".join(products) + '\'], \n')
     out.write('    solvent = \'' + args.solvent + '\', \n')
     out.write('    correction = BarrierCorrection(correction = (' + barrierCorrection + ', \'kJ/mol\')), \n')
     out.write('    shortDesc = u"""MO6-2X/MG3S calculations in g09 with SMD solvation model""", \n')
