@@ -111,7 +111,7 @@ def generate(args):
     changed = rxnFamily.solvationCorrections.groups.generateGroupAdditivityValues(trainingSet, user=user)
     if changed:
         # Save the new group values to disk
-        rxnFamily.solvationCorrections.saveSolvationGroups(os.path.join('input', 'kinetics', 'families', args.family[0], args.solvent, 'solvationGroups.py'))
+        rxnFamily.solvationCorrections.saveSolvationGroups(os.path.join('/Users/belinda/Code/RMG-database', 'input', 'kinetics', 'families', args.family[0], args.solvent, 'solvationGroups.py'))
 
 ################################################################################
 
