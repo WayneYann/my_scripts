@@ -15,98 +15,109 @@ from rmgpy.data.rmg import RMGDatabase
 from rmgpy.data.base import Database
 #########################################################
 database = Database()
-species_dict = database.getSpecies('/home/slakman.b/Code/RMG-models/Liq_Fuel_Ox_2013/RMG_Dictionary.txt')
+species_dict = database.getSpecies('/Users/belinda/Downloads/mech_C8_EF_paper/V3/RMG_Dictionary.txt')
 
 reaction_list = []
+family_list = ['H_Abstraction', 'intra_H_migration']
 
-with open('/home/slakman.b/Code/RMG-models/Liq_Fuel_Ox_2013/mechanism.txt', 'r') as mech_file:
+with open('/Users/belinda/Downloads/mech_C8_EF_paper/V3/chem.inp', 'r') as mech_file:
     for line in mech_file:
         if line.strip().startswith('REACTIONS'): break
     for line in mech_file:
         if line.strip().startswith('!'): break
-        if 'H_Abstraction' in line: reaction_list.append(line.strip())
+        if 'H_Abstraction' in line or 'intra_H_migration' in line: reaction_list.append(line.strip())
 
 rmg_database = RMGDatabase()
-rmg_database.load(settings['database.directory'], kineticsFamilies=['H_Abstraction'], reactionLibraries=[])
+rmg_database.load(settings['database.directory'], kineticsFamilies=family_list, reactionLibraries=[])
 kinetics_database = rmg_database.kinetics
-family = kinetics_database.families['H_Abstraction']
+families = [kinetics_database.families[f] for f in family_list]
 
 barrier_database = SolvationKinetics()
-barrier_database.family = family
-barrier_database.load(os.path.join(settings['database.directory'], 'kinetics', 'families', 'H_Abstraction'), None, None)
+barrier_database.family = families[0]
+barrier_database.load(os.path.join(settings['database.directory'], 'kinetics', 'families', "H_Abstraction"), None, None)
+
+barrier_database2 = SolvationKinetics()
+barrier_database2.family = families[1]
+barrier_database2.load(os.path.join(settings['database.directory'], 'kinetics', 'families', "intra_H_migration"), None, None)
 
 delEa_list = []
+for rxn in reaction_list:
+        if 'H_Abstraction' in rxn:
+            bd = barrier_database
+            reactants, products = rxn.split('=')[0], rxn.split('=')[1]
+            r1_ID, r2_ID = reactants.split('+')
+            p1_ID, p2_ID = products.split('+')[0], products.split('+')[1]
+            p2_ID = p2_ID.split(')')[0] + ')'
+            rSpecies1 = species_dict[r1_ID]
+            rSpecies2 = species_dict[r2_ID]
+            pSpecies1 = species_dict[p1_ID]
+            pSpecies2 = species_dict[p2_ID]
+            rSpecies1.generateResonanceIsomers()
+            rSpecies2.generateResonanceIsomers()
+            pSpecies1.generateResonanceIsomers()
+            pSpecies2.generateResonanceIsomers()
+            testReaction = Reaction(reactants=[rSpecies1, rSpecies2], products=[pSpecies1, pSpecies2], reversible=True)
+            reactionList = []
+            for moleculeA in rSpecies1.molecule:
+                for moleculeB in rSpecies2.molecule:
+        	    tempList = rmg_database.kinetics.generateReactionsFromFamilies([moleculeA, moleculeB], [], only_families=['H_Abstraction'])
+                    for rxn0 in tempList:
+                        reactionList.append(rxn0)
+        else:
+            bd = barrier_database2
+            reactants, products = rxn.split('=')[0], rxn.split('=')[1]
+            r1_ID = reactants
+            p1_ID = products.split(')')[0] + ')'
+            rSpecies1 = species_dict[r1_ID]
+            pSpecies1 = species_dict[p1_ID]
+            rSpecies1.generateResonanceIsomers()
+            pSpecies1.generateResonanceIsomers()
+            testReaction = Reaction(reactants=[rSpecies1], products=[pSpecies1], reversible=True)
+            reactionList = []
+            for moleculeA in rSpecies1.molecule:
+                tempList = rmg_database.kinetics.generateReactionsFromFamilies([moleculeA], [], only_families=['intra_H_migration'])
+                for rxn0 in tempList:
+                    reactionList.append(rxn0)
 
-for reaction in reaction_list:
-    reactants, products = reaction.split('=')[0], reaction.split('=')[1]
-    r1_ID, r2_ID = reactants.split('+')
-    p1_ID, p2_ID = products.split('+')[0], products.split('+')[1]
-    p2_ID = p2_ID.split(')')[0] + ')'
-    r1 = species_dict[r1_ID]
-    r2 = species_dict[r2_ID]
-    p1 = species_dict[p1_ID]
-    p2 = species_dict[p2_ID]
-    reactant_molecules = [r1.molecule[0], r2.molecule[0]]
-    product_molecules = [p1.molecule[0], p2.molecule[0]]
-    testReaction = Reaction(reactants=[r1,r2], products=[p1,p2], reversible=True)
+        gotOne=False
+        for reaction in reactionList:
+        	# Check if any of the RMG proposed reactions matches the reaction in the mechanism
+        	if testReaction.isIsomorphic(reaction):
+        		# Now add the labeled atoms to the Molecule, and check all labels were added
+        		atLblsR = dict([(lbl[0], False) for lbl in reaction.labeledAtoms])
+        		atLblsP = dict([(lbl[0], False) for lbl in reaction.labeledAtoms])
 
-#reactant_molecules = [Molecule(SMILES="[CH3]"), Molecule(SMILES="O")]
-#product_molecules = [Molecule(SMILES="C"), Molecule(SMILES="[OH]")]
-#
-#reactant_species = [Species(molecule=mol.generateResonanceIsomers()) for mol in reactant_molecules]
-#product_species = [Species(molecule=mol.generateResonanceIsomers()) for mol in product_molecules]
-#
-#testReaction = Reaction(reactants=reactant_species, products=product_species, reversible=True)
+        		for reactant in reaction.reactants:
+        			#reactant = reactant.molecule[0]
+        			reactant.clearLabeledAtoms()
+        			for atom in reactant.atoms:
+        				for atomLabel in reaction.labeledAtoms:
+        					if atom==atomLabel[1]:
+        						atom.label = atomLabel[0]
+        						atLblsR[atomLabel[0]] = True
+        		for product in reaction.products:
+        			#product = product.molecule[0]
+        			product.clearLabeledAtoms()
+        			for atom in product.atoms:
+        				for atomLabel in reaction.labeledAtoms:
+        					if atom==atomLabel[1]:
+        						atom.label = atomLabel[0]
+        						atLblsP[atomLabel[0]] = True
 
-    reactions = kinetics_database.generateReactionsFromFamilies(reactant_molecules, product_molecules, only_families = [family.label])
-    if len(reactions) == 0:
-        reactIsoms = [mol.generateResonanceIsomers() for mol in reactant_molecules]
-        if len(reactIsoms)==2:
-            r1, r2 = reactIsoms
-            checkRxn=[]
-            #while checkRxn == []:
-            for moleculeA in r1:
-                for moleculeB in r2:
-                    reactant_molecules = [moleculeA, moleculeB]
-                    checkRxn = kinetics_database.generateReactionsFromFamilies(reactant_molecules, product_molecules, only_families=[family.label])
-                    if checkRxn != []: break
-            if checkRxn == []:
-                print testReaction.reactants, testReaction.products
-                sys.exit()
-            reaction = checkRxn[0]
-    else:
-        reaction = reactions[0]
+                        if all( atLblsR.values() ) and all( atLblsP.values() ):
+                            gotOne=True
+                            my_reaction = reaction
+                            break
 
-    assert testReaction.isIsomorphic(reaction)
+        if not gotOne:
+            continue
 
-    atLblsR = dict([(lbl[0], False) for lbl in reaction.labeledAtoms])
-    atLblsP = dict([(lbl[0], False) for lbl in reaction.labeledAtoms])
+        barrierCorrection = bd.estimateBarrierCorrection(reaction)
+        delEa_list.append(barrierCorrection.correction.value_si) # Value in J/mol
 
-    for reactant in reaction.reactants:
-        reactant = reactant.molecule[0]
-        reactant.clearLabeledAtoms()
-        for atom in reactant.atoms:
-            for atomLabel in reaction.labeledAtoms:
-                if atom==atomLabel[1]:
-                    atom.label = atomLabel[0]
-                    atLblsR[atomLabel[0]] = True
-
-    for product in reaction.products:
-        product = product.molecule[0]
-        product.clearLabeledAtoms()
-        for atom in product.atoms:
-            for atomLabel in reaction.labeledAtoms:
-                if atom==atomLabel[1]:
-                    atom.label = atomLabel[0]
-                    atLblsP[atomLabel[0]] = True
-
-
-    barrierCorrection = barrier_database.estimateBarrierCorrection(reaction)
-    delEa_list.append(barrierCorrection.correction.value_si) # Value in J/mol
-
-new_mech_file = open('/home/slakman.b/Code/RMG-models/Liq_Fuel_Ox_2013/mechanism_corrected.txt', 'a+')
+new_mech_file = open('/Users/belinda/Downloads/mech_C8_EF_paper/V3/chem_modified.inp', 'a+')
 num = 0 # Count H_Abs reactions
-with open('/home/slakman.b/Code/RMG-models/Liq_Fuel_Ox_2013/mechanism.txt', 'r') as mech_file:
+with open('/Users/belinda/Downloads/mech_C8_EF_paper/V3/chem.inp', 'r') as mech_file:
     # write header and species list
     for line in mech_file:
         new_mech_file.write(line)
