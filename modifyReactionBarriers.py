@@ -15,12 +15,12 @@ from rmgpy.data.rmg import RMGDatabase
 from rmgpy.data.base import Database
 #########################################################
 database = Database()
-species_dict = database.getSpecies('/Users/belinda/Downloads/mech_C8_EF_paper/V3/RMG_Dictionary.txt')
+species_dict = database.getSpecies('/home/slakman.b/Code/mech/MH_mechs1/prelim_mech_V3/RMG_Dictionary.txt')
 
 reaction_list = []
 family_list = ['H_Abstraction', 'intra_H_migration']
 
-with open('/Users/belinda/Downloads/mech_C8_EF_paper/V3/chem.inp', 'r') as mech_file:
+with open('/home/slakman.b/Code/mech/MH_mechs1/prelim_mech_V3/chem.inp', 'r') as mech_file:
     for line in mech_file:
         if line.strip().startswith('REACTIONS'): break
     for line in mech_file:
@@ -115,16 +115,16 @@ for rxn in reaction_list:
         barrierCorrection = bd.estimateBarrierCorrection(reaction)
         delEa_list.append(barrierCorrection.correction.value_si) # Value in J/mol
 
-new_mech_file = open('/Users/belinda/Downloads/mech_C8_EF_paper/V3/chem_modified.inp', 'a+')
-num = 0 # Count H_Abs reactions
-with open('/Users/belinda/Downloads/mech_C8_EF_paper/V3/chem.inp', 'r') as mech_file:
+new_mech_file = open('/home/slakman.b/Code/mech/MH_mechs1/prelim_mech_V3/chem_modified.inp', 'a+')
+num = 0
+with open('/home/slakman.b/Code/mech/MH_mechs1/prelim_mech_V3/chem.inp', 'r') as mech_file:
     # write header and species list
     for line in mech_file:
         new_mech_file.write(line)
         if line.strip().startswith('REACTIONS'): break
     # write reactions, including the H_Abs one with corrected Ea
     for line in mech_file:
-        if 'H_Abstraction' in line:
+        if 'H_Abstraction' in line or 'intra_H_migration' in line:
            # get the correction, apply to appropriate place in line
            corr = delEa_list[num] / 4184 # kcal/mol
            Ea = float(line[72:77]) + corr
