@@ -71,7 +71,7 @@ for i, rxn in enumerate(reaction_list_V4):
 #                 for rxn0 in tempList:
 #                     reactionList.append(rxn0)
 
-    for r reaction_list_V3:
+    for r in reaction_list_V3:
         if h_abs:
             if 'H_Abstraction' in r:
                 reactants, products = r.split('=')[0], r.split('=')[1]
