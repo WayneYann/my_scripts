@@ -110,9 +110,12 @@ for rxn in reaction_list:
                             break
 
         if not gotOne:
+            # Silently fail, and give the barrier correction as 0.
+            #print rxn
+            delEa_list.append(0.0)
             continue
 
-        barrierCorrection = bd.estimateBarrierCorrection(reaction)
+        barrierCorrection = bd.estimateBarrierCorrection(my_reaction)
         delEa_list.append(barrierCorrection.correction.value_si) # Value in J/mol
 
 new_mech_file = open('/home/slakman.b/Code/mech/MH_mechs1/prelim_mech_V3/chem_modified.inp', 'a+')
@@ -133,7 +136,7 @@ with open('/home/slakman.b/Code/mech/MH_mechs1/prelim_mech_V3/chem.inp', 'r') as
            if len(Ea_string) < 5:
                i=0
                while i < 5-len(Ea_string):
-                   Ea = Ea + " "
+                   Ea = str(Ea) + " "
                    i += 1
            new_mech_file.write(line[:72] + str(Ea) + line[77:])
            num += 1
