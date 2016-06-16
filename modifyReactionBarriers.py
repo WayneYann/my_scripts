@@ -15,21 +15,22 @@ from rmgpy.data.base import Database
 import csv
 #########################################################
 class ChangedReaction():
-    def __init__(self, index, rxn_string, delEa, A=None, n=None, Ea_old=None, Ea_new=None:
+    def __init__(self, index, rxn_string, delEa, A=None, n=None, Ea_old=None, Ea_new=None):
         self.index = index
         self.rxn_string = rxn_string
         self.delEa = delEa
         self.A = A
         self.n = n
-        self.Ea = Ea
+        self.Ea_old = Ea_old
+        self.Ea_new = Ea_new
 
 database = Database()
-species_dict = database.getSpecies('/home/slakman.b/Code/mech_C8_EF_paper/V3/RMG_Dictionary.txt')
+species_dict = database.getSpecies('/Users/belinda/Code/Cantera/mech_C8_EF_paper/V3/RMG_Dictionary.txt')
 
 reaction_list = []
 family_list = ['H_Abstraction', 'intra_H_migration']
 
-with open('/home/slakman.b/Code/mech_C8_EF_paper/V3/chem.inp', 'r') as mech_file:
+with open('/Users/belinda/Code/Cantera/mech_C8_EF_paper/V3/chem.inp', 'r') as mech_file:
     for line in mech_file:
         if line.strip().startswith('REACTIONS'): break
     for line in mech_file:
@@ -131,9 +132,9 @@ for rxn in reaction_list:
         delEa_list.append(ChangedReaction(index, rxn_string, barrierCorrection.correction.value_si))
         index += 1
 
-new_mech_file = open('/home/slakman.b/Code/mech_C8_EF_paper/V3/chem_modified.inp', 'a+')
+new_mech_file = open('/Users/belinda/Code/Cantera/mech_C8_EF_paper/V3/chem_modified.inp', 'a+')
 num = 0
-with open('/home/slakman.b/Code/mech_C8_EF_paper/V3/chem.inp', 'r') as mech_file:
+with open('/Users/belinda/Code/Cantera/mech_C8_EF_paper/V3/chem.inp', 'r') as mech_file:
     # write header and species list
     for line in mech_file:
         new_mech_file.write(line)
@@ -173,4 +174,4 @@ with open('ModifiedReactions.csv', 'wb') as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(column_names)
     for rxn in delEa_list:
-        ws.writerow([exec("rxn."+c) for c in column_names])
+        ws.writerow([eval("rxn."+c) for c in column_names])
