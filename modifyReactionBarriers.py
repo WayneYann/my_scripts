@@ -1,8 +1,7 @@
 """
 Given a species dictionary and chemkin file, will modify the reaction barriers
 for liquid phase based on the group additive scheme in RMG-Py, and will return
-the chemkin file back with the barriers changed. This is for H-Abstraction for
-now.
+the chemkin file back with the barriers changed.
 """
 import sys
 import os
@@ -13,14 +12,24 @@ from rmgpy.data.solvation import DatabaseError, SoluteData, SolvationDatabase, S
 from rmgpy.reaction import Reaction
 from rmgpy.data.rmg import RMGDatabase
 from rmgpy.data.base import Database
+import csv
 #########################################################
+class ChangedReaction():
+    def __init__(self, index, rxn_string, delEa, A=None, n=None, Ea_old=None, Ea_new=None:
+        self.index = index
+        self.rxn_string = rxn_string
+        self.delEa = delEa
+        self.A = A
+        self.n = n
+        self.Ea = Ea
+
 database = Database()
-species_dict = database.getSpecies('/home/slakman.b/Code/mech/MH_mechs1/prelim_mech_V3/RMG_Dictionary.txt')
+species_dict = database.getSpecies('/home/slakman.b/Code/mech_C8_EF_paper/V3/RMG_Dictionary.txt')
 
 reaction_list = []
 family_list = ['H_Abstraction', 'intra_H_migration']
 
-with open('/home/slakman.b/Code/mech/MH_mechs1/prelim_mech_V3/chem.inp', 'r') as mech_file:
+with open('/home/slakman.b/Code/mech_C8_EF_paper/V3/chem.inp', 'r') as mech_file:
     for line in mech_file:
         if line.strip().startswith('REACTIONS'): break
     for line in mech_file:
@@ -41,6 +50,7 @@ barrier_database2.family = families[1]
 barrier_database2.load(os.path.join(settings['database.directory'], 'kinetics', 'families', "intra_H_migration"), None, None)
 
 delEa_list = []
+index=0
 for rxn in reaction_list:
         if 'H_Abstraction' in rxn:
             bd = barrier_database
@@ -116,21 +126,29 @@ for rxn in reaction_list:
             continue
 
         barrierCorrection = bd.estimateBarrierCorrection(my_reaction)
-        delEa_list.append(barrierCorrection.correction.value_si) # Value in J/mol
+        #delEa_list.append(barrierCorrection.correction.value_si) # Value in J/mol
+        rxn_string = '+'.join([r.toSMILES() for r in my_reaction.reactants])+"_"+'+'.join([p.toSMILES() for p in my_reaction.products])
+        delEa_list.append(ChangedReaction(index, rxn_string, barrierCorrection.correction.value_si))
+        index += 1
 
-new_mech_file = open('/home/slakman.b/Code/mech/MH_mechs1/prelim_mech_V3/chem_modified.inp', 'a+')
+new_mech_file = open('/home/slakman.b/Code/mech_C8_EF_paper/V3/chem_modified.inp', 'a+')
 num = 0
-with open('/home/slakman.b/Code/mech/MH_mechs1/prelim_mech_V3/chem.inp', 'r') as mech_file:
+with open('/home/slakman.b/Code/mech_C8_EF_paper/V3/chem.inp', 'r') as mech_file:
     # write header and species list
     for line in mech_file:
         new_mech_file.write(line)
         if line.strip().startswith('REACTIONS'): break
-    # write reactions, including the H_Abs one with corrected Ea
+    # write reactions, including the ones with corrected Ea
     for line in mech_file:
         if 'H_Abstraction' in line or 'intra_H_migration' in line:
            # get the correction, apply to appropriate place in line
-           corr = delEa_list[num] / 4184 # kcal/mol
+           changedRxn = delEa_list[num]
+           corr = changedRxn.delEa / 4184 # kcal/mol
+           changedRxn.A = float(line[53:62])
+           changedExn.n = float(line[63:69])
+           changedRxn.Ea_old = float(line[72:77])
            Ea = float(line[72:77]) + corr
+           changedRxn.Ea_new = Ea
            Ea_string = str(Ea)
            # Make sure this string is 5 characters
            if len(Ea_string) < 5:
@@ -140,6 +158,7 @@ with open('/home/slakman.b/Code/mech/MH_mechs1/prelim_mech_V3/chem.inp', 'r') as
                    i += 1
            new_mech_file.write(line[:72] + str(Ea) + line[77:])
            num += 1
+           delEa_list[num] = changedRxn
         else:
            new_mech_file.write(line)
            if line.strip().startswith('!'): break
@@ -147,3 +166,11 @@ with open('/home/slakman.b/Code/mech/MH_mechs1/prelim_mech_V3/chem.inp', 'r') as
     for line in mech_file:
         new_mech_file.write(line)
 new_mech_file.close()
+
+delEa_list.sort(key=lambda x: x.delEa, reverse=True)
+column_names = [name for name in dir(delEa_list) if not name.startswith('__')]
+with open('ModifiedReactions.csv', 'wb') as csvfile:
+    writer = csv.writer(csvfile)
+    writer.writerow(column_names)
+    for rxn in delEa_list:
+        ws.writerow([exec("rxn."+c) for c in column_names])
