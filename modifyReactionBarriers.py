@@ -24,13 +24,21 @@ class ChangedReaction():
         self.Ea_old = Ea_old
         self.Ea_new = Ea_new
 
+    def setParam(self, A, n, Ea):
+        self.A = A
+        self.n = n
+        self.Ea_old = Ea
+
+    def setModEa(self, Ea):
+        self.Ea_new = Ea
+
 database = Database()
-species_dict = database.getSpecies('/Users/belinda/Code/Cantera/mech_C8_EF_paper/V3/RMG_Dictionary.txt')
+species_dict = database.getSpecies('/home/slakman.b/Code/mech_C8_EF_paper/V3/RMG_Dictionary.txt')
 
 reaction_list = []
 family_list = ['H_Abstraction', 'intra_H_migration']
 
-with open('/Users/belinda/Code/Cantera/mech_C8_EF_paper/V3/chem.inp', 'r') as mech_file:
+with open('/home/slakman.b/Code/mech_C8_EF_paper/V3/chem.inp', 'r') as mech_file:
     for line in mech_file:
         if line.strip().startswith('REACTIONS'): break
     for line in mech_file:
@@ -132,9 +140,9 @@ for rxn in reaction_list:
         delEa_list.append(ChangedReaction(index, rxn_string, barrierCorrection.correction.value_si))
         index += 1
 
-new_mech_file = open('/Users/belinda/Code/Cantera/mech_C8_EF_paper/V3/chem_modified.inp', 'a+')
+new_mech_file = open('/home/slakman.b/Code/mech_C8_EF_paper/V3/chem_modified.inp', 'a+')
 num = 0
-with open('/Users/belinda/Code/Cantera/mech_C8_EF_paper/V3/chem.inp', 'r') as mech_file:
+with open('/home/slakman.b/Code/mech_C8_EF_paper/V3/chem.inp', 'r') as mech_file:
     # write header and species list
     for line in mech_file:
         new_mech_file.write(line)
@@ -144,12 +152,16 @@ with open('/Users/belinda/Code/Cantera/mech_C8_EF_paper/V3/chem.inp', 'r') as me
         if 'H_Abstraction' in line or 'intra_H_migration' in line:
            # get the correction, apply to appropriate place in line
            changedRxn = delEa_list[num]
+           if not isinstance(changedRxn, ChangedReaction):
+               new_mech_file.write(line)
+               continue
            corr = changedRxn.delEa / 4184 # kcal/mol
-           changedRxn.A = float(line[53:62])
-           changedExn.n = float(line[63:69])
-           changedRxn.Ea_old = float(line[72:77])
+           A = float(line[53:62])
+           n = float(line[64:69])
+           Ea_old = float(line[72:77])
+           changedRxn.setParam(A, n, Ea_old)
            Ea = float(line[72:77]) + corr
-           changedRxn.Ea_new = Ea
+           changedRxn.setModEa(Ea)
            Ea_string = str(Ea)
            # Make sure this string is 5 characters
            if len(Ea_string) < 5:
@@ -158,8 +170,8 @@ with open('/Users/belinda/Code/Cantera/mech_C8_EF_paper/V3/chem.inp', 'r') as me
                    Ea = str(Ea) + " "
                    i += 1
            new_mech_file.write(line[:72] + str(Ea) + line[77:])
-           num += 1
            delEa_list[num] = changedRxn
+           num += 1
         else:
            new_mech_file.write(line)
            if line.strip().startswith('!'): break
@@ -168,10 +180,13 @@ with open('/Users/belinda/Code/Cantera/mech_C8_EF_paper/V3/chem.inp', 'r') as me
         new_mech_file.write(line)
 new_mech_file.close()
 
+import ipdb; ipdb.set_trace()
+delEa_list = [y for y in delEa_list if isinstance(y, ChangedReaction)]
 delEa_list.sort(key=lambda x: x.delEa, reverse=True)
-column_names = [name for name in dir(delEa_list) if not name.startswith('__')]
+column_name = [index, rxn_string, A, n, Ea_old, Ea_new, delEa]
+#column_names = [name for name in dir(delEa_list[0]) if not name.startswith('__')]
 with open('ModifiedReactions.csv', 'wb') as csvfile:
     writer = csv.writer(csvfile)
     writer.writerow(column_names)
     for rxn in delEa_list:
-        ws.writerow([eval("rxn."+c) for c in column_names])
+        writer.writerow([str(eval("rxn."+c)) for c in column_names])
