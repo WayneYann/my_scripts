@@ -137,7 +137,7 @@ for rxn in reaction_list:
         barrierCorrection = bd.estimateBarrierCorrection(my_reaction)
         #delEa_list.append(barrierCorrection.correction.value_si) # Value in J/mol
         rxn_string = '+'.join([r.toSMILES() for r in my_reaction.reactants])+"_"+'+'.join([p.toSMILES() for p in my_reaction.products])
-        delEa_list.append(ChangedReaction(index, rxn_string, barrierCorrection.correction.value_si))
+        delEa_list.append(ChangedReaction(index, rxn_string, barrierCorrection.correction.value_si/4184))
         index += 1
 
 new_mech_file = open('/home/slakman.b/Code/mech_C8_EF_paper/V3/chem_modified.inp', 'a+')
@@ -155,11 +155,13 @@ with open('/home/slakman.b/Code/mech_C8_EF_paper/V3/chem.inp', 'r') as mech_file
            if not isinstance(changedRxn, ChangedReaction):
                new_mech_file.write(line)
                continue
-           corr = changedRxn.delEa / 4184 # kcal/mol
+           corr = changedRxn.delEa # kcal/mol
            A = float(line[53:62])
            n = float(line[64:69])
            Ea_old = float(line[72:77])
            changedRxn.setParam(A, n, Ea_old)
+           if changedRxn.A is None:
+               import ipdb; ipdb.set_trace()
            Ea = float(line[72:77]) + corr
            changedRxn.setModEa(Ea)
            Ea_string = str(Ea)
@@ -180,10 +182,9 @@ with open('/home/slakman.b/Code/mech_C8_EF_paper/V3/chem.inp', 'r') as mech_file
         new_mech_file.write(line)
 new_mech_file.close()
 
-import ipdb; ipdb.set_trace()
 delEa_list = [y for y in delEa_list if isinstance(y, ChangedReaction)]
-delEa_list.sort(key=lambda x: x.delEa, reverse=True)
-column_name = [index, rxn_string, A, n, Ea_old, Ea_new, delEa]
+delEa_list.sort(key=lambda x: abs(x.delEa), reverse=True)
+column_names = ['index', 'rxn_string', 'A', 'n', 'Ea_old', 'Ea_new', 'delEa']
 #column_names = [name for name in dir(delEa_list[0]) if not name.startswith('__')]
 with open('ModifiedReactions.csv', 'wb') as csvfile:
     writer = csv.writer(csvfile)
