@@ -89,16 +89,33 @@ if err_message is None:
 	for g in gp_outputs:
 		gp = g[0]
 		smiles = g[1]
+		gotOutput = False
 		# Check for liquid phase output in this or another folder.
-		if not os.path.exists(os.path.join(reaction_folder, smiles.encode('utf8') + "_" + solvent + ".log")):
-		    for folder in os.listdir(os.path.join("/home/slakman.b/Gaussian/SMD/", family)):
-		    	if os.path.exists(os.path.join("/home/slakman.b/Gaussian/SMD/", family, folder, smiles.encode('utf8') + "_" + solvent + ".log")):
-		    	    with open(os.path.join("/home/slakman.b/Gaussian/SMD/", family, folder, smiles.encode('utf8') + "_" + solvent + ".log")) as oF:
-                                for line in oF:
-                                    line = line.strip()
-                                    if "Normal termination" in line:
-                                        copy(os.path.join("/home/slakman.b/Gaussian/SMD/", family, folder, smiles.encode('utf8') + "_" + solvent + ".log"), reaction_folder)
-		    		        break
+		if os.path.exists(os.path.join(reaction_folder, smiles.encode('utf8') + "_" + solvent + ".log")):
+			with open(os.path.join(reaction_folder, smiles.encode('utf8') + "_" + solvent + ".log")) as oF:
+				for line in oF:
+					line = line.strip()
+					if "Normal termination" in line:
+						gotOutput = True
+					    break
+			if gotOutput:
+				continue
+
+		for folder in os.listdir(os.path.join("/home/slakman.b/Gaussian/SMD/", family)):
+			if folder == reaction_folder:
+				continue
+		    if os.path.exists(os.path.join("/home/slakman.b/Gaussian/SMD/", family, folder, smiles.encode('utf8') + "_" + solvent + ".log")):
+		    	with open(os.path.join("/home/slakman.b/Gaussian/SMD/", family, folder, smiles.encode('utf8') + "_" + solvent + ".log")) as oF:
+                	for line in oF:
+                    	line = line.strip()
+                        if "Normal termination" in line:
+							copy(os.path.join("/home/slakman.b/Gaussian/SMD/", family, folder, smiles.encode('utf8') + "_" + solvent + ".log"), reaction_folder)
+							gotOutput = True
+							break
+			if gotOutput=True:
+				break
+
+		if not gotOutput:
 			xyz_geom = ""
 			with open(gp, 'r') as gpf:
 		            lines = gpf.read().split('\n')
@@ -132,7 +149,6 @@ if err_message is None:
 			input_file.close()
 
 			# submits the input file to Gaussian
-			#import ipdb; ipdb.set_trace()
 			process = Popen(["/shared/apps/gaussian/G09_LINUX_LINDA/g09/g09", input_file_path + ".gjf", input_file_path + ".log"])
 			process.communicate() # necessary to wait for executable termination!
 
