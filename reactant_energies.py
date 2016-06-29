@@ -22,7 +22,7 @@ conn = sqlite3.connect('/scratch/westgroup/ts_data.db') # Table name is TSData
 print "Opened database successfully"
 
 family = 'H_Abstraction'
-solvent = 'n-octane'
+solvent = 'water'
 
 if family == 'H_Abstraction':
     geometries = conn.execute("SELECT uniqueID, r1, r2 FROM (SELECT * from TSData WHERE rxnFamily=\'" + family + "\') WHERE method='m062x'") # returns cursor
@@ -88,13 +88,17 @@ if err_message is None:
 	# Extract geometry from gas-phase output
 	for g in gp_outputs:
 		gp = g[0]
-        smiles = g[1]
-		# Check for liquid phase output in another folder.
-		for folder in os.listdir(os.path.join("/home/slakman.b/Gaussian/SMD/", family)):
-			if os.path.exists(os.path.join("/home/slakman.b/Gaussian/SMD/", family, folder, smiles.encode('utf8') + "_" + solvent + ".log")):
-				copy(os.path.join("/home/slakman.b/Gaussian/SMD/", family, folder, smiles.encode('utf8') + "_" + solvent + ".log"), reaction_folder)
-				break
+		smiles = g[1]
+		# Check for liquid phase output in this or another folder.
 		if not os.path.exists(os.path.join(reaction_folder, smiles.encode('utf8') + "_" + solvent + ".log")):
+		    for folder in os.listdir(os.path.join("/home/slakman.b/Gaussian/SMD/", family)):
+		    	if os.path.exists(os.path.join("/home/slakman.b/Gaussian/SMD/", family, folder, smiles.encode('utf8') + "_" + solvent + ".log")):
+		    	    with open(os.path.join("/home/slakman.b/Gaussian/SMD/", family, folder, smiles.encode('utf8') + "_" + solvent + ".log")) as oF:
+                                for line in oF:
+                                    line = line.strip()
+                                    if "Normal termination" in line:
+                                        copy(os.path.join("/home/slakman.b/Gaussian/SMD/", family, folder, smiles.encode('utf8') + "_" + solvent + ".log"), reaction_folder)
+		    		        break
 			xyz_geom = ""
 			with open(gp, 'r') as gpf:
 		            lines = gpf.read().split('\n')
