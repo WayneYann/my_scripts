@@ -52,7 +52,8 @@ out.close()
 index = 1
 unique = {}
 
-data = [["X_rad_count",
+if args.family == "H_Abstraction":
+    data = [["X_rad_count",
 "X_lp_count",
 "X_atomType",
 "X_neighborC",
@@ -67,6 +68,9 @@ data = [["X_rad_count",
 "Y_neighborH",
 "Y_neighborN",
 "barrier_correction"]]
+
+if args.family == "intra_H_migration":
+    data = [[]]
 
 for subdir, dirs, files in os.walk(data_dir):
     reactionString = os.path.basename(os.path.normpath(subdir))
@@ -204,45 +208,49 @@ for subdir, dirs, files in os.walk(data_dir):
             d.write(my_reaction.products[indP].toAdjacencyList() + '\n')
             d.close()
 
-    for m in my_reaction.reactants:
-        try:
-            x_atom = m.getLabeledAtom('*1')
-            x_neighbors = [atom for atom in m.getLabeledAtom('*1').bonds]
-        except:
-            pass
-        try:
-            y_atom = m.getLabeledAtom('*3')
-            y_neighbors = [atom for atom in m.getLabeledAtom('*3').bonds]
-        except:
-            pass
-    x_rad = x_atom.radicalElectrons
-    x_lp = x_atom.lonePairs
-    x_atomType = x_atom.atomType.label
-    x_neighborC = 0
-    x_neighborO = 0
-    x_neighborH = 0
-    x_neighborN = 0
-    for neighbor in x_neighbors:
-        if neighbor.element.symbol is 'C': x_neighborC += 1
-        elif neighbor.element.symbol is 'H': x_neighborH += 1
-        elif neighbor.element.symbol is 'O': x_neighborO += 1
-        elif neighbor.element.symbol is 'N': x_neighborN += 1
-        else: print "Encountered {0}; need a new attribute!".format(neighbor.element.symbol)
+    if args.family == "H_Abstraction":
+        for m in my_reaction.reactants:
+            try:
+                x_atom = m.getLabeledAtom('*1')
+                x_neighbors = [atom for atom in m.getLabeledAtom('*1').bonds]
+            except:
+                pass
+            try:
+                y_atom = m.getLabeledAtom('*3')
+                y_neighbors = [atom for atom in m.getLabeledAtom('*3').bonds]
+            except:
+                pass
+        x_rad = x_atom.radicalElectrons
+        x_lp = x_atom.lonePairs
+        x_atomType = x_atom.atomType.label
+        x_neighborC = 0
+        x_neighborO = 0
+        x_neighborH = 0
+        x_neighborN = 0
+        for neighbor in x_neighbors:
+            if neighbor.element.symbol is 'C': x_neighborC += 1
+            elif neighbor.element.symbol is 'H': x_neighborH += 1
+            elif neighbor.element.symbol is 'O': x_neighborO += 1
+            elif neighbor.element.symbol is 'N': x_neighborN += 1
+            else: print "Encountered {0}; need a new attribute!".format(neighbor.element.symbol)
 
-    y_rad = y_atom.radicalElectrons
-    y_lp = y_atom.lonePairs
-    y_atomType = y_atom.atomType.label
-    y_neighborC = 0
-    y_neighborO = 0
-    y_neighborH = 0
-    y_neighborN = 0
-    for neighbor in y_neighbors:
-        if neighbor.element.symbol is 'C': y_neighborC += 1
-        elif neighbor.element.symbol is 'H': y_neighborH += 1
-        elif neighbor.element.symbol is 'O': y_neighborO += 1
-        elif neighbor.element.symbol is 'N': y_neighborN += 1
-        else: print "Encountered {0}; need a new attribute!".format(neighbor.element.symbol)
+        y_rad = y_atom.radicalElectrons
+        y_lp = y_atom.lonePairs
+        y_atomType = y_atom.atomType.label
+        y_neighborC = 0
+        y_neighborO = 0
+        y_neighborH = 0
+        y_neighborN = 0
+        for neighbor in y_neighbors:
+            if neighbor.element.symbol is 'C': y_neighborC += 1
+            elif neighbor.element.symbol is 'H': y_neighborH += 1
+            elif neighbor.element.symbol is 'O': y_neighborO += 1
+            elif neighbor.element.symbol is 'N': y_neighborN += 1
+            else: print "Encountered {0}; need a new attribute!".format(neighbor.element.symbol)
 
-    data.append([x_rad, x_lp, x_atomType, x_neighborC, x_neighborO, x_neighborH, x_neighborN, y_rad, y_lp, y_atomType, y_neighborC, y_neighborO, y_neighborH, y_neighborN, barrierCorrection])
+        data.append([x_rad, x_lp, x_atomType, x_neighborC, x_neighborO, x_neighborH, x_neighborN, y_rad, y_lp, y_atomType, y_neighborC, y_neighborO, y_neighborH, y_neighborN, barrierCorrection])
 
+    if args.family == "intra_H_migration":
+        #other stuff
+        data.append()
 pd.DataFrame(data[1:], columns=data[0]).to_csv('data_neighbors.csv')
