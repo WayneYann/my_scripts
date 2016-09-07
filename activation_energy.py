@@ -1,11 +1,11 @@
 # Script written by Pierre, and modified by Belinda.
 
-from cclib import parser
+from external.cclib import parser
 import argparse
 import collections
 import os
 
-solventList = ['', '_n-octane']#["", "_water", "_n-octane", "_benzene", "_pyridine", "_tetrahydrofuran", "_dichloromethane", "_acetonitrile", "_dimethylsulfoxide"]
+solventList = ['', '_n-octane', '_water', "_benzene", "_pyridine", "_tetrahydrofuran", "_dichloromethane", "_acetonitrile", "_dimethylsulfoxide"]
 
 clParser = argparse.ArgumentParser(description="""
 Given a reaction family, will get TS energies from Gaussian output files in
@@ -17,12 +17,11 @@ clParser.add_argument("-f", "--family", default="H_Abstraction", help="Name of t
 #optional stuff that tells you about the reacting site like CH or prim...
 #""")
 args = clParser.parse_args()
-directory = os.path.join("/Users/belinda/Gaussian/SMD/", args.family)
+directory = os.path.join("/home/slakman.b/Gaussian/SMD/", "09_2016")#args.family)
 
 # Go through all of the reactions for that family
 for rxn_folder in os.listdir(directory):
     rxn_directory = os.path.join(directory, rxn_folder)
-
     if '+' in rxn_folder: # bimolecular
         r1 = rxn_folder.split('_')[0].split('+')[0]
         r2 = rxn_folder.split('_')[0].split('+')[1]
@@ -54,7 +53,10 @@ for rxn_folder in os.listdir(directory):
                 continue
 
             # In Hartrees
-            reactantE = rParse.scfenergies[-1]/27.2113845
+            try:
+               reactantE = rParse.scfenergies[-1]/27.2113845
+            except:
+               import ipdb; ipdb.set_trace()
             tsE = tsParse.scfenergies[-1]/27.2113845
             tsVib = tsParse.vibfreqs[0]
 
