@@ -1,34 +1,54 @@
 from rmgpy.qm.reaction import QMReaction
 from rmgpy.qm.main import QMSettings
+from rmgpy.qm.gaussian import GaussianTSM062X
 from rmgpy.reaction import Reaction
-from rmgpy.molecule import Molecule
+from rmgpy.molecule import Molecule, Atom
 from rmgpy.species import Species
 from rmgpy.data.rmg import RMGDatabase
 import os
 
 database = RMGDatabase()
 database.load(os.path.abspath(os.path.join(os.getenv('RMGpy'), '..', 'RMG-database', 'input')),
-kineticsFamilies=['H_Abstraction'], seedMechanisms=[], solvation=False)
+kineticsFamilies=['Silylene_Insertion'], seedMechanisms=[], solvation=False)
+tsDatabase = database.kinetics.families['Silylene_Insertion'].transitionStates
 
-rxnString = os.getcwd().split('/')[-1]
-r1 = Molecule().fromSMILES(rxnString.split('_')[0].split('+')[0])
-r2 = Molecule().fromSMILES(rxnString.split('_')[0].split('+')[1])
-p1 = Molecule().fromSMILES(rxnString.split('_')[1].split('+')[0])
-p2 = Molecule().fromSMILES(rxnString.split('_')[1].split('+')[1])
+def fixLonePairMolecule(mol_string):
+    """
+    Fix an incorrect SMILES parsing for molecule that should have a lone pair
+    We fix the first atom we encounter. Not sure what to do if there's more
+    than one
+    """
+    if "(S)" in mol_string:
+        smiles = mol_string.split("(S")[0]
+        rmg_mol = Molecule().fromSMILES(smiles)
+        for atom in rmg_mol.atoms:
+            if atom.radicalElectrons >= 2:
+                 atom.radicalElectrons -= 2
+                 atom.lonePairs += 1
+                 rmg_mol.update()
+                 break
+        return rmg_mol
+    else: return Molecule().fromSMILES(mol_string)
+
+rxnString = os.getcwd().split('/')[-2]
+r1 = fixLonePairMolecule(rxnString.split('_')[0].split('+')[0])
+r2 = fixLonePairMolecule(rxnString.split('_')[0].split('+')[1])
+p1 = fixLonePairMolecule(rxnString.split('_')[1])#.split('+')[0])
+#p2 = fixLonePairMolecule(rxnString.split('_')[1].split('+')[1])
 rSpecies1 = Species(molecule=[r1])
 rSpecies2 = Species(molecule=[r2])
 pSpecies1 = Species(molecule=[p1])
-pSpecies2 = Species(molecule=[p2])
+#pSpecies2 = Species(molecule=[p2])
 rSpecies1.generateResonanceIsomers()
 rSpecies2.generateResonanceIsomers()
 pSpecies1.generateResonanceIsomers()
-pSpecies2.generateResonanceIsomers()
+#pSpecies2.generateResonanceIsomers()
 
-testReaction = Reaction(reactants=[rSpecies1, rSpecies2], products=[pSpecies1, pSpecies2], reversible=True)
+testReaction = Reaction(reactants=[rSpecies1, rSpecies2], products=[pSpecies1], reversible=True)
 reactionList = []
 for moleculeA in rSpecies1.molecule:
     for moleculeB in rSpecies2.molecule:
-        tempList = rmgDatabase.kinetics.generateReactionsFromFamilies([moleculeA, moleculeB], [], only_families=['H_Abstraction'])
+        tempList = database.kinetics.generateReactionsFromFamilies([moleculeA, moleculeB], [], only_families=['Silylene_Insertion'])
         for rxn0 in tempList:
             reactionList.append(rxn0)
 
@@ -62,9 +82,9 @@ for reaction in reactionList:
 qmSettings = QMSettings(
 software='gaussian',
 method='m062x',
-fileStore='/gss_gpfs_scratch/slakman.b/QMfiles',
+fileStore=os.getcwd(),
 scratchDirectory='/gss_gpfs_scratch/slakman.b/QMscratch'
 )
 
-qmReac = GaussianTSM062X(reaction, qmSettings, database)
+qmReac = GaussianTSM062X(reaction, qmSettings, tsDatabase)
 qmReac.generateTSGeometryDirectGuess()
