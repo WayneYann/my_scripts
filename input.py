@@ -12,12 +12,12 @@ from rmgpy.qm.gaussian import GaussianTSB3LYP
 
 if len(sys.argv)>1:
 	i = int(sys.argv[-1])
-elif os.getenv('LSB_JOBINDEX'):
-	i = int(os.getenv('LSB_JOBINDEX'))
+elif os.getenv('SLURM_ARRAY_TASK_ID'):
+	i = int(os.getenv('SLURM_ARRAY_TASK_ID'))
 else:
 	raise Exception("Specify a TS number!")
 
-rxnFamiles = ['H_Abstraction']#,'Cl-Abstraction' ['intra_H_migration', 'R_Addition_MultipleBond', 'H_Abstraction', 'Disproportionation']
+rxnFamiles = ['Silylene_Insertion', 'H_Abstraction']#,'Cl-Abstraction' ['intra_H_migration', 'R_Addition_MultipleBond', 'H_Abstraction', 'Disproportionation']
 
 print 'Loading RMG Database ...'
 rmgDatabase = RMGDatabase()
