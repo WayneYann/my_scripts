@@ -132,7 +132,7 @@ def calculate(reaction):
 			os.remove(files)
 
 if not gotOne:
-	print "No reactions found for reaction {4}: {0} + {1} = {2} + {3}".format(rSpecies1.molecule[0].toSMILES(), rSpecies2.molecule[0].toSMILES(), pSpecies1.molecule[0].toSMILES(), pSpecies2.molecule[0].toSMILES(), i)
+	print "No reactions found for reaction {2}: {0} = {1}".format('+'.join([r.molecule[0].toSMILES() for r in testReaction.reactants]), '+'.join([p.molecule[0].toSMILES() for p in testReaction.products]), i)
 else:
 	qmCalc = QMCalculator(
 									software='gaussian',
