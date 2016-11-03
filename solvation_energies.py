@@ -76,7 +76,7 @@ if os.path.exists(os.path.join(reaction_folder, "ts_" + solvent + ".log")):
 				break
 if not success:
 	# Write input file
-	options = "%mem=5GB\n%nprocshared=10"
+	options = "%mem=20GB\n%nprocshared=10"
 	keywords = "# m062x/6-311+G(2df,2p) scrf(smd, solvent=" + solvent +") int=ultrafine freq nosymm"
 	title = entry[0].encode('utf8')
 
