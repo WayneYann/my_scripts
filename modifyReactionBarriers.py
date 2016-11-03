@@ -154,14 +154,13 @@ with open('/home/slakman.b/Code/mech_C8_EF_paper/V3/chem.inp', 'r') as mech_file
            changedRxn = delEa_list[num]
            if not isinstance(changedRxn, ChangedReaction):
                new_mech_file.write(line)
+               num += 1
                continue
            corr = changedRxn.delEa # kcal/mol
            A = float(line[53:62])
            n = float(line[64:69])
            Ea_old = float(line[72:77])
            changedRxn.setParam(A, n, Ea_old)
-           if changedRxn.A is None:
-               import ipdb; ipdb.set_trace()
            Ea = float(line[72:77]) + corr
            changedRxn.setModEa(Ea)
            Ea_string = str(Ea)
