@@ -11748,11 +11748,10 @@ div#notebook {
 
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[1]:</div>
+<div class="prompt input_prompt">In&nbsp;[18]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span></span><span class="c1"># %load classification.py</span>
-<span class="kn">import</span> <span class="nn">os</span>
+<div class=" highlight hl-ipython2"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 
 <span class="kn">import</span> <span class="nn">rmgpy</span>
@@ -11772,122 +11771,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[2]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span></span><span class="k">def</span> <span class="nf">get_features</span><span class="p">(</span><span class="n">reaction</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given a rmgpy.reaction.Reaction() &#39;reaction&#39;, calculate the value of </span>
-<span class="sd">    the features for this reaction and return as a dictionary</span>
-<span class="sd">    </span>
-<span class="sd">    Currently specific to Silylene Insertion reactions</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">features</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;H2&#39;</span><span class="p">,</span> <span class="s1">&#39;Sirad_H&#39;</span><span class="p">,</span> <span class="s1">&#39;Sirad_Si_H&#39;</span><span class="p">,</span> <span class="s1">&#39;Sid_H&#39;</span><span class="p">,</span> <span class="s1">&#39;Sid_Si_H&#39;</span><span class="p">,</span> <span class="s1">&#39;sil_H2&#39;</span><span class="p">,</span> <span class="s1">&#39;sil_rad&#39;</span><span class="p">,</span> <span class="s1">&#39;sil_d&#39;</span><span class="p">,</span> <span class="s1">&#39;Success Code&#39;</span><span class="p">]</span>
-    <span class="n">feature_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">features</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="bp">False</span><span class="p">)</span>
-    
-    <span class="k">if</span> <span class="s1">&#39;[H][H]&#39;</span> <span class="ow">in</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">molecule</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">toSMILES</span><span class="p">()</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">reaction</span><span class="o">.</span><span class="n">reactants</span><span class="p">]:</span>
-        <span class="n">feature_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">([</span><span class="s1">&#39;H2&#39;</span><span class="p">],</span> <span class="bp">True</span><span class="p">))</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">reaction</span><span class="o">.</span><span class="n">reactants</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">si_h</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">molecule</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">getLabeledAtom</span><span class="p">(</span><span class="s1">&#39;*1&#39;</span><span class="p">)</span>
-            <span class="k">except</span><span class="p">:</span>
-                <span class="k">pass</span>
-        <span class="k">if</span> <span class="n">si_h</span><span class="o">.</span><span class="n">radicalElectrons</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">feature_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">([</span><span class="s1">&#39;Sirad_H&#39;</span><span class="p">],</span> <span class="bp">True</span><span class="p">))</span>
-        <span class="k">for</span> <span class="n">atom</span><span class="p">,</span> <span class="n">bond</span> <span class="ow">in</span> <span class="n">si_h</span><span class="o">.</span><span class="n">bonds</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">atom</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">symbol</span> <span class="o">==</span> <span class="s1">&#39;Si&#39;</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">atom</span><span class="o">.</span><span class="n">radicalElectrons</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">feature_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">([</span><span class="s1">&#39;Sirad_Si_H&#39;</span><span class="p">],</span> <span class="bp">True</span><span class="p">))</span>
-                <span class="k">for</span> <span class="n">atom2</span><span class="p">,</span> <span class="n">bond2</span> <span class="ow">in</span> <span class="n">atom</span><span class="o">.</span><span class="n">bonds</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                    <span class="k">if</span> <span class="n">atom2</span> <span class="o">!=</span> <span class="n">si_h</span> <span class="ow">and</span> <span class="n">bond2</span><span class="o">.</span><span class="n">order</span> <span class="o">==</span> <span class="s1">&#39;D&#39;</span><span class="p">:</span>
-                        <span class="n">feature_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">([</span><span class="s1">&#39;Sid_Si_H&#39;</span><span class="p">],</span> <span class="bp">True</span><span class="p">))</span>
-            <span class="k">if</span> <span class="n">bond</span><span class="o">.</span><span class="n">order</span> <span class="o">==</span> <span class="s1">&#39;D&#39;</span><span class="p">:</span>
-                <span class="n">feature_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">([</span><span class="s1">&#39;Sid_H&#39;</span><span class="p">],</span> <span class="bp">True</span><span class="p">))</span>
-    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">reaction</span><span class="o">.</span><span class="n">products</span><span class="p">:</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">sil_h</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">molecule</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">getLabeledAtom</span><span class="p">(</span><span class="s1">&#39;*3&#39;</span><span class="p">)</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="k">pass</span>
-    <span class="n">neighbor_atoms</span> <span class="o">=</span> <span class="p">[</span><span class="n">neighbor</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">neighbor</span> <span class="ow">in</span> <span class="n">sil_h</span><span class="o">.</span><span class="n">bonds</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">neighbor_atoms</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">([</span><span class="n">neighbor</span><span class="o">.</span><span class="n">atom</span><span class="o">.</span><span class="n">symbol</span> <span class="o">==</span> <span class="s1">&#39;H&#39;</span> <span class="k">for</span> <span class="n">neighbor</span> <span class="ow">in</span> <span class="n">neighbor_atoms</span><span class="p">]):</span>
-        <span class="n">feature_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">([</span><span class="s1">&#39;sil_H2&#39;</span><span class="p">],</span> <span class="bp">True</span><span class="p">))</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">sil_h</span><span class="o">.</span><span class="n">radicalElectrons</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">feature_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">([</span><span class="s1">&#39;sil_rad&#39;</span><span class="p">],</span> <span class="bp">True</span><span class="p">))</span>
-        <span class="k">for</span> <span class="n">atom</span><span class="p">,</span> <span class="n">bond</span> <span class="ow">in</span> <span class="n">sil_h</span><span class="o">.</span><span class="n">bonds</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">bond</span><span class="o">.</span><span class="n">order</span> <span class="o">==</span> <span class="s1">&#39;D&#39;</span><span class="p">:</span>
-                <span class="n">feature_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">([</span><span class="s1">&#39;sil_d&#39;</span><span class="p">],</span> <span class="bp">True</span><span class="p">))</span>
-
-    <span class="k">return</span> <span class="n">feature_dict</span>
-</pre></div>
-
-</div>
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[22]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span></span><span class="k">def</span> <span class="nf">get_success</span><span class="p">(</span><span class="n">reaction</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Given a rmgpy.reaction.Reaction() &#39;reaction&#39;, get whether the TS calculation succeeded or how it</span>
-<span class="sd">    failed (success, false positive, failure1, failure2)</span>
-<span class="sd">    </span>
-<span class="sd">    Currently, will only work if reaction is bimolecular-&gt;unimolecular (2 reactants-&gt;1)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">scratch_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;SCRATCH&#39;</span><span class="p">)</span> 
-    <span class="k">if</span> <span class="n">scratch_dir</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="n">scratch_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;RMGpy&#39;</span><span class="p">)</span>
-    
-    <span class="n">success</span> <span class="o">=</span> <span class="bp">None</span>
-    <span class="n">family</span> <span class="o">=</span> <span class="n">reaction</span><span class="o">.</span><span class="n">family</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">my_folder</span> <span class="o">=</span> <span class="n">find_reaction_folder</span><span class="p">(</span><span class="n">reaction</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
-        <span class="k">print</span> <span class="s2">&quot;Couldn&#39;t find any folders for the reaction: {0}+{1}-&gt;{2}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-            <span class="n">reaction</span><span class="o">.</span><span class="n">reactant</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">molecule</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">toSMILES</span><span class="p">(),</span> <span class="n">reaction</span><span class="o">.</span><span class="n">reactant</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">molecule</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">toSMILES</span><span class="p">,</span>
-            <span class="n">reaction</span><span class="o">.</span><span class="n">product</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">molecule</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">toSMILES</span><span class="p">())</span>
-    
-    <span class="k">if</span> <span class="n">my_folder</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;false_positives&#39;</span><span class="p">,</span> <span class="n">my_folder</span><span class="p">)):</span>
-            <span class="n">success</span> <span class="o">=</span> <span class="s1">&#39;FP&#39;</span> <span class="c1"># false positive</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">scratch_dir</span><span class="p">,</span> <span class="s1">&#39;QMfiles/Reactions&#39;</span><span class="p">,</span> <span class="n">family</span><span class="p">,</span> <span class="n">my_folder</span><span class="p">,</span> <span class="s1">&#39;m062x&#39;</span><span class="p">,</span> <span class="s1">&#39;error.txt&#39;</span><span class="p">)):</span>
-                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">scratch_dir</span><span class="p">,</span> <span class="s1">&#39;QMfiles/Reactions&#39;</span><span class="p">,</span> <span class="n">family</span><span class="p">,</span> <span class="n">my_folder</span><span class="p">,</span> <span class="s1">&#39;m062x&#39;</span><span class="p">,</span> <span class="s1">&#39;error.txt&#39;</span><span class="p">))</span> <span class="k">as</span> <span class="n">error_file</span><span class="p">:</span>
-                    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">error_file</span><span class="p">:</span> <span class="c1"># There should only be one</span>
-                        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;Success&#39;</span><span class="p">):</span>
-                            <span class="n">success</span> <span class="o">=</span> <span class="s1">&#39;S&#39;</span>
-                            <span class="k">break</span>
-                        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;TS not converged&#39;</span><span class="p">):</span>
-                            <span class="n">success</span> <span class="o">=</span> <span class="s1">&#39;F1&#39;</span> <span class="c1"># TS not converged failure</span>
-                            <span class="k">break</span>
-                        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;IRC failed&#39;</span><span class="p">):</span>
-                            <span class="n">success</span> <span class="o">=</span> <span class="s1">&#39;F2&#39;</span> <span class="c1"># IRC failure</span>
-                            <span class="k">break</span>
-                <span class="k">if</span> <span class="n">success</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-                    <span class="k">print</span> <span class="s2">&quot;Strange error {0} in reaction {1}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">my_folder</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">scratch_dir</span><span class="p">,</span> <span class="s1">&#39;QMfiles/Reactions&#39;</span><span class="p">,</span> <span class="n">family</span><span class="p">,</span> <span class="n">my_folder</span><span class="p">,</span> <span class="s1">&#39;m062x&#39;</span><span class="p">,</span> <span class="s1">&#39;optDists.txt&#39;</span><span class="p">)):</span>
-                <span class="n">success</span> <span class="o">=</span> <span class="s1">&#39;S&#39;</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">print</span> <span class="s2">&quot;Not sure about reaction {0}, has contents {1}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">my_folder</span><span class="p">,</span> 
-                            <span class="s1">&#39; , &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">scratch_dir</span><span class="p">,</span> <span class="s1">&#39;QMfiles/Reactions&#39;</span><span class="p">,</span> 
-                                                               <span class="n">family</span><span class="p">,</span> <span class="n">my_folder</span><span class="p">,</span> <span class="s1">&#39;m062x&#39;</span><span class="p">))))</span>
-
-    <span class="k">return</span> <span class="n">success</span>
-</pre></div>
-
-</div>
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[16]:</div>
+<div class="prompt input_prompt">In&nbsp;[19]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="k">def</span> <span class="nf">find_reaction_folder</span><span class="p">(</span><span class="n">reaction</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
@@ -11921,7 +11805,119 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[5]:</div>
+<div class="prompt input_prompt">In&nbsp;[21]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span></span><span class="n">r1</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="n">molecule</span><span class="o">=</span><span class="p">[</span><span class="n">Molecule</span><span class="p">()</span><span class="o">.</span><span class="n">fromSMILES</span><span class="p">(</span><span class="s1">&#39;[SiH2]&#39;</span><span class="p">)])</span>
+<span class="n">r2</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="n">molecule</span><span class="o">=</span><span class="p">[</span><span class="n">Molecule</span><span class="p">()</span><span class="o">.</span><span class="n">fromSMILES</span><span class="p">(</span><span class="s1">&#39;[SiH4]&#39;</span><span class="p">)])</span>
+<span class="n">p1</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="n">molecule</span><span class="o">=</span><span class="p">[</span><span class="n">Molecule</span><span class="p">()</span><span class="o">.</span><span class="n">fromSMILES</span><span class="p">(</span><span class="s1">&#39;[SiH3][SiH3]&#39;</span><span class="p">)])</span>
+<span class="k">print</span> <span class="n">find_reaction_folder</span><span class="p">(</span><span class="n">Reaction</span><span class="p">(</span><span class="n">reactants</span><span class="o">=</span><span class="p">[</span><span class="n">r1</span><span class="p">,</span><span class="n">r2</span><span class="p">],</span> <span class="n">products</span><span class="o">=</span><span class="p">[</span><span class="n">p1</span><span class="p">]),</span> <span class="n">family</span><span class="o">=</span><span class="s1">&#39;Silylene_Insertion&#39;</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>[SiH2]+[SiH4]_[SiH3][SiH3]
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[4]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span></span><span class="k">def</span> <span class="nf">load_mechanism</span><span class="p">(</span><span class="n">mech_file</span><span class="p">,</span> <span class="n">dict_file</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Loads the RMG database and processes a chemical mechanism. </span>
+<span class="sd">    </span>
+<span class="sd">    Returns loaded rmgpy.data.rmg.RMGDatabase(), list of </span>
+<span class="sd">    reactions and their families, and species dictionary</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span> <span class="s1">&#39;Loading RMG Database ...&#39;</span>
+    <span class="n">families</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Silylene_Insertion&#39;</span><span class="p">,</span> <span class="s1">&#39;H_Abstraction&#39;</span><span class="p">]</span>
+    <span class="n">rmgDatabase</span> <span class="o">=</span> <span class="n">RMGDatabase</span><span class="p">()</span>
+    <span class="n">rmgDatabase</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;RMGpy&#39;</span><span class="p">),</span> <span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="s1">&#39;RMG-database&#39;</span><span class="p">,</span> <span class="s1">&#39;input&#39;</span><span class="p">)),</span> 
+                     <span class="n">kineticsFamilies</span><span class="o">=</span><span class="n">families</span><span class="p">,</span> <span class="n">seedMechanisms</span><span class="o">=</span><span class="p">[],</span> <span class="n">solvation</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+    <span class="k">print</span> <span class="s1">&#39;Finished loading RMG Database ...&#39;</span>
+
+    <span class="n">loadSpecies</span> <span class="o">=</span> <span class="n">rmgDatabase</span><span class="o">.</span><span class="n">kinetics</span><span class="o">.</span><span class="n">families</span><span class="p">[</span><span class="n">families</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="c1"># any family will do</span>
+    <span class="n">species_dict</span> <span class="o">=</span> <span class="n">loadSpecies</span><span class="o">.</span><span class="n">getSpecies</span><span class="p">(</span><span class="n">dict_file</span><span class="p">)</span>
+
+    <span class="n">file_object</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">mech_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+    <span class="n">mechLines</span> <span class="o">=</span> <span class="n">file_object</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+
+    <span class="n">rxnList</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">gotit</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">mechLines</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;! Template reaction:&#39;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+                <span class="n">reaction</span> <span class="o">=</span> <span class="n">mechLines</span><span class="p">[</span><span class="n">k</span><span class="o">+</span><span class="n">m</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">reaction</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;!&#39;</span><span class="p">):</span>
+                    <span class="k">break</span>
+            <span class="k">if</span> <span class="n">reaction</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">gotit</span><span class="p">:</span>
+                <span class="n">gotit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reaction</span><span class="p">)</span>
+                <span class="n">rxnList</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span> <span class="n">mechLines</span><span class="p">[</span><span class="n">k</span><span class="o">+</span><span class="n">m</span><span class="p">]))</span>
+
+    <span class="k">return</span> <span class="n">rmgDatabase</span><span class="p">,</span> <span class="n">rxnList</span><span class="p">,</span> <span class="n">species_dict</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[22]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span></span><span class="n">database</span><span class="p">,</span> <span class="n">reaction_list</span><span class="p">,</span> <span class="n">species_dict</span> <span class="o">=</span> <span class="n">load_mechanism</span><span class="p">(</span>
+        <span class="s1">&#39;sih4_mech/chem_edge_annotated.inp&#39;</span><span class="p">,</span> <span class="s1">&#39;sih4_mech/species_edge_dictionary.txt&#39;</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt"></div>
+<div class="output_subarea output_stream output_stderr output_text">
+<pre>WARNING:root:Should only make one instance of RMGDatabase because it&#39;s stored as a module-level variable!
+WARNING:root:Unexpected behaviour may result!
+</pre>
+</div>
+</div>
+
+<div class="output_area"><div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Loading RMG Database ...
+Finished loading RMG Database ...
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[3]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="k">def</span> <span class="nf">get_rmg_reaction</span><span class="p">(</span><span class="n">database</span><span class="p">,</span> <span class="n">species_dict</span><span class="p">,</span> <span class="n">family</span><span class="p">,</span> <span class="n">mech_line</span><span class="p">):</span>
@@ -12021,42 +12017,95 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[46]:</div>
+<div class="prompt input_prompt">In&nbsp;[90]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span></span><span class="k">def</span> <span class="nf">load_mechanism</span><span class="p">(</span><span class="n">mech_file</span><span class="p">,</span> <span class="n">dict_file</span><span class="p">):</span>
+<div class=" highlight hl-ipython2"><pre><span></span><span class="k">print</span> <span class="n">reaction_list</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+<span class="n">rxn</span> <span class="o">=</span> <span class="n">get_rmg_reaction</span><span class="p">(</span><span class="n">database</span><span class="p">,</span> <span class="n">species_dict</span><span class="p">,</span> <span class="s1">&#39;Silylene_Insertion&#39;</span><span class="p">,</span> <span class="n">reaction_list</span><span class="p">[</span><span class="mi">5</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">rxn</span><span class="o">.</span><span class="n">reactants</span><span class="p">,</span> <span class="n">rxn</span><span class="o">.</span><span class="n">products</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>(&#39;Silylene_Insertion\n&#39;, &#39;H2(11)+Si2(37)=SiH2Si(16)                           4.200e+06 1.970     -0.454   \n&#39;)
+</pre>
+</div>
+</div>
+
+<div class="output_area"><div class="prompt output_prompt">Out[90]:</div>
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>([Species(label=&#34;&#34;, molecule=[Molecule(SMILES=&#34;[H][H]&#34;)]),
+  Species(label=&#34;&#34;, molecule=[Molecule(SMILES=&#34;[Si]=[Si]&#34;)])],
+ [Species(label=&#34;&#34;, molecule=[Molecule(SMILES=&#34;[Si]=[SiH2]&#34;)])])</pre>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[55]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span></span><span class="k">def</span> <span class="nf">get_features</span><span class="p">(</span><span class="n">reaction</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Loads the RMG database and processes a chemical mechanism. </span>
+<span class="sd">    Given a rmgpy.reaction.Reaction() &#39;reaction&#39;, calculate the value of </span>
+<span class="sd">    the features for this reaction and return as a dictionary</span>
 <span class="sd">    </span>
-<span class="sd">    Returns loaded rmgpy.data.rmg.RMGDatabase(), list of </span>
-<span class="sd">    reactions and their families, and species dictionary</span>
+<span class="sd">    Currently specific to Silylene Insertion reactions</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">print</span> <span class="s1">&#39;Loading RMG Database ...&#39;</span>
-    <span class="n">families</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Silylene_Insertion&#39;</span><span class="p">,</span> <span class="s1">&#39;H_Abstraction&#39;</span><span class="p">]</span>
-    <span class="n">rmgDatabase</span> <span class="o">=</span> <span class="n">RMGDatabase</span><span class="p">()</span>
-    <span class="n">rmgDatabase</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;RMGpy&#39;</span><span class="p">),</span> <span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="s1">&#39;RMG-database&#39;</span><span class="p">,</span> <span class="s1">&#39;input&#39;</span><span class="p">)),</span> 
-                     <span class="n">kineticsFamilies</span><span class="o">=</span><span class="n">families</span><span class="p">,</span> <span class="n">seedMechanisms</span><span class="o">=</span><span class="p">[],</span> <span class="n">solvation</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-    <span class="k">print</span> <span class="s1">&#39;Finished loading RMG Database ...&#39;</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;H2&#39;</span><span class="p">,</span> <span class="s1">&#39;Sirad_H&#39;</span><span class="p">,</span> <span class="s1">&#39;Sirad_Si_H&#39;</span><span class="p">,</span> <span class="s1">&#39;Sid_H&#39;</span><span class="p">,</span> <span class="s1">&#39;Sid_Si_H&#39;</span><span class="p">,</span> <span class="s1">&#39;sil_H2&#39;</span><span class="p">,</span> <span class="s1">&#39;sil_rad&#39;</span><span class="p">,</span> <span class="s1">&#39;sil_d&#39;</span><span class="p">,</span> <span class="s1">&#39;Success Code&#39;</span><span class="p">]</span>
+    <span class="n">feature_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">features</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="bp">False</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="s1">&#39;[H][H]&#39;</span> <span class="ow">in</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">molecule</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">toSMILES</span><span class="p">()</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">reaction</span><span class="o">.</span><span class="n">reactants</span><span class="p">]:</span>
+        <span class="n">feature_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">([</span><span class="s1">&#39;H2&#39;</span><span class="p">],</span> <span class="bp">True</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">reaction</span><span class="o">.</span><span class="n">reactants</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">si_h</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">molecule</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">getLabeledAtom</span><span class="p">(</span><span class="s1">&#39;*1&#39;</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">pass</span>
+        <span class="k">if</span> <span class="n">si_h</span><span class="o">.</span><span class="n">radicalElectrons</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">feature_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">([</span><span class="s1">&#39;Sirad_H&#39;</span><span class="p">],</span> <span class="bp">True</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">atom</span><span class="p">,</span> <span class="n">bond</span> <span class="ow">in</span> <span class="n">si_h</span><span class="o">.</span><span class="n">bonds</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">atom</span><span class="o">.</span><span class="n">element</span><span class="o">.</span><span class="n">symbol</span> <span class="o">==</span> <span class="s1">&#39;Si&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">atom</span><span class="o">.</span><span class="n">radicalElectrons</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">feature_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">([</span><span class="s1">&#39;Sirad_Si_H&#39;</span><span class="p">],</span> <span class="bp">True</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">atom2</span><span class="p">,</span> <span class="n">bond2</span> <span class="ow">in</span> <span class="n">atom</span><span class="o">.</span><span class="n">bonds</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">atom2</span> <span class="o">!=</span> <span class="n">si_h</span> <span class="ow">and</span> <span class="n">bond2</span><span class="o">.</span><span class="n">order</span> <span class="o">==</span> <span class="s1">&#39;D&#39;</span><span class="p">:</span>
+                        <span class="n">feature_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">([</span><span class="s1">&#39;Sid_Si_H&#39;</span><span class="p">],</span> <span class="bp">True</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">bond</span><span class="o">.</span><span class="n">order</span> <span class="o">==</span> <span class="s1">&#39;D&#39;</span><span class="p">:</span>
+                <span class="n">feature_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">([</span><span class="s1">&#39;Sid_H&#39;</span><span class="p">],</span> <span class="bp">True</span><span class="p">))</span>
+    
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">reaction</span><span class="o">.</span><span class="n">reactants</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">sil_h</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">molecule</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">getLabeledAtom</span><span class="p">(</span><span class="s1">&#39;*3&#39;</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+    <span class="n">neighbor_atoms</span> <span class="o">=</span> <span class="p">[</span><span class="n">neighbor</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">neighbor</span> <span class="ow">in</span> <span class="n">sil_h</span><span class="o">.</span><span class="n">bonds</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">neighbor_atoms</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">([</span><span class="n">neighbor</span><span class="o">.</span><span class="n">symbol</span> <span class="o">==</span> <span class="s1">&#39;H&#39;</span> <span class="k">for</span> <span class="n">neighbor</span> <span class="ow">in</span> <span class="n">neighbor_atoms</span><span class="p">]):</span>
+        <span class="n">feature_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">([</span><span class="s1">&#39;sil_H2&#39;</span><span class="p">],</span> <span class="bp">True</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">sil_h</span><span class="o">.</span><span class="n">radicalElectrons</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">feature_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">([</span><span class="s1">&#39;sil_rad&#39;</span><span class="p">],</span> <span class="bp">True</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">atom</span><span class="p">,</span> <span class="n">bond</span> <span class="ow">in</span> <span class="n">sil_h</span><span class="o">.</span><span class="n">bonds</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">bond</span><span class="o">.</span><span class="n">order</span> <span class="o">==</span> <span class="s1">&#39;D&#39;</span><span class="p">:</span>
+                <span class="n">feature_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">([</span><span class="s1">&#39;sil_d&#39;</span><span class="p">],</span> <span class="bp">True</span><span class="p">))</span>
 
-    <span class="n">loadSpecies</span> <span class="o">=</span> <span class="n">rmgDatabase</span><span class="o">.</span><span class="n">kinetics</span><span class="o">.</span><span class="n">families</span><span class="p">[</span><span class="n">families</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="c1"># any family will do</span>
-    <span class="n">species_dict</span> <span class="o">=</span> <span class="n">loadSpecies</span><span class="o">.</span><span class="n">getSpecies</span><span class="p">(</span><span class="n">dict_file</span><span class="p">)</span>
-
-    <span class="n">file_object</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">mech_file</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
-    <span class="n">mechLines</span> <span class="o">=</span> <span class="n">file_object</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
-
-    <span class="n">rxnList</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">gotit</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">mechLines</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;! Template reaction:&#39;</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
-                <span class="n">reaction</span> <span class="o">=</span> <span class="n">mechLines</span><span class="p">[</span><span class="n">k</span><span class="o">+</span><span class="n">m</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">reaction</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;!&#39;</span><span class="p">):</span>
-                    <span class="k">break</span>
-            <span class="k">if</span> <span class="n">reaction</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">gotit</span><span class="p">:</span>
-                <span class="n">gotit</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reaction</span><span class="p">)</span>
-                <span class="n">rxnList</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;: &#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span> <span class="n">mechLines</span><span class="p">[</span><span class="n">k</span><span class="o">+</span><span class="n">m</span><span class="p">]))</span>
-
-    <span class="k">return</span> <span class="n">rmgDatabase</span><span class="p">,</span> <span class="n">rxnList</span><span class="p">,</span> <span class="n">species_dict</span>
+    <span class="k">return</span> <span class="n">feature_dict</span>
 </pre></div>
 
 </div>
@@ -12066,7 +12115,119 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[47]:</div>
+<div class="prompt input_prompt">In&nbsp;[56]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span></span><span class="k">print</span> <span class="n">get_features</span><span class="p">(</span><span class="n">rxn</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>{&#39;sil_d&#39;: True, &#39;sil_rad&#39;: False, &#39;Sid_H&#39;: False, &#39;H2&#39;: True, &#39;Sirad_H&#39;: False, &#39;sil_H2&#39;: False, &#39;Sirad_Si_H&#39;: False, &#39;Sid_Si_H&#39;: False}
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[85]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span></span><span class="k">def</span> <span class="nf">get_success</span><span class="p">(</span><span class="n">reaction</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Given a rmgpy.reaction.Reaction() &#39;reaction&#39;, get whether the TS calculation succeeded or how it</span>
+<span class="sd">    failed (success, false positive, failure1, failure2)</span>
+<span class="sd">    </span>
+<span class="sd">    Currently, will only work if reaction is bimolecular-&gt;unimolecular (2 reactants-&gt;1)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">scratch_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;SCRATCH&#39;</span><span class="p">)</span> 
+    <span class="k">if</span> <span class="n">scratch_dir</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">scratch_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;RMGpy&#39;</span><span class="p">)</span>
+    
+    <span class="n">success</span> <span class="o">=</span> 
+    <span class="n">family</span> <span class="o">=</span> <span class="n">reaction</span><span class="o">.</span><span class="n">family</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">my_folder</span> <span class="o">=</span> <span class="n">find_reaction_folder</span><span class="p">(</span><span class="n">reaction</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s2">&quot;Couldn&#39;t find any folders for the reaction: {0}+{1}-&gt;{2}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">reaction</span><span class="o">.</span><span class="n">reactant</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">molecule</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">toSMILES</span><span class="p">(),</span> <span class="n">reaction</span><span class="o">.</span><span class="n">reactant</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">molecule</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">toSMILES</span><span class="p">,</span>
+            <span class="n">reaction</span><span class="o">.</span><span class="n">product</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">molecule</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">toSMILES</span><span class="p">())</span>
+    
+    <span class="k">if</span> <span class="n">my_folder</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;false_positives&#39;</span><span class="p">,</span> <span class="n">my_folder</span><span class="p">)):</span>
+            <span class="n">success</span> <span class="o">=</span> <span class="s1">&#39;FP&#39;</span> <span class="c1"># false positive</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">scratch_dir</span><span class="p">,</span> <span class="s1">&#39;QMfiles/Reactions&#39;</span><span class="p">,</span> <span class="n">family</span><span class="p">,</span> <span class="n">my_folder</span><span class="p">,</span> <span class="s1">&#39;m062x&#39;</span><span class="p">,</span> <span class="s1">&#39;error.txt&#39;</span><span class="p">)):</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">scratch_dir</span><span class="p">,</span> <span class="s1">&#39;QMfiles/Reactions&#39;</span><span class="p">,</span> <span class="n">family</span><span class="p">,</span> <span class="n">my_folder</span><span class="p">,</span> <span class="s1">&#39;m062x&#39;</span><span class="p">,</span> <span class="s1">&#39;error.txt&#39;</span><span class="p">))</span> <span class="k">as</span> <span class="n">error_file</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">error_file</span><span class="p">:</span> <span class="c1"># There should only be one</span>
+                        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;Success&#39;</span><span class="p">):</span>
+                            <span class="n">success</span> <span class="o">=</span> <span class="s1">&#39;S&#39;</span>
+                            <span class="k">break</span>
+                        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;TS not converged&#39;</span><span class="p">):</span>
+                            <span class="n">success</span> <span class="o">=</span> <span class="s1">&#39;F1&#39;</span> <span class="c1"># TS not converged failure</span>
+                            <span class="k">break</span>
+                        <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;IRC failed&#39;</span><span class="p">):</span>
+                            <span class="n">success</span> <span class="o">=</span> <span class="s1">&#39;F2&#39;</span> <span class="c1"># IRC failure</span>
+                            <span class="k">break</span>
+                <span class="k">if</span> <span class="n">success</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="k">print</span> <span class="s2">&quot;Strange error {0} in reaction {1}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">my_folder</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">scratch_dir</span><span class="p">,</span> <span class="s1">&#39;QMfiles/Reactions&#39;</span><span class="p">,</span> <span class="n">family</span><span class="p">,</span> <span class="n">my_folder</span><span class="p">,</span> <span class="s1">&#39;m062x&#39;</span><span class="p">,</span> <span class="s1">&#39;optDists.txt&#39;</span><span class="p">)):</span>
+                <span class="n">success</span> <span class="o">=</span> <span class="s1">&#39;S&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s2">&quot;Not sure about reaction {0}, has contents {1}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">my_folder</span><span class="p">,</span> 
+                            <span class="s1">&#39; , &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">scratch_dir</span><span class="p">,</span> <span class="s1">&#39;QMfiles/Reactions&#39;</span><span class="p">,</span> 
+                                                               <span class="n">family</span><span class="p">,</span> <span class="n">my_folder</span><span class="p">,</span> <span class="s1">&#39;m062x&#39;</span><span class="p">))))</span>
+
+    <span class="k">return</span> <span class="n">success</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[58]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span></span><span class="k">print</span> <span class="n">get_success</span><span class="p">(</span><span class="n">rxn</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>F2
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[77]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="k">def</span> <span class="nf">get_family_data</span><span class="p">(</span><span class="n">family</span><span class="p">):</span>
@@ -12083,8 +12244,8 @@ div#notebook {
 
     <span class="k">for</span> <span class="n">reaction_tuple</span> <span class="ow">in</span> <span class="n">reaction_list</span><span class="p">:</span>
         <span class="n">rxn_family</span><span class="p">,</span> <span class="n">reaction_line</span> <span class="o">=</span> <span class="n">reaction_tuple</span>
-        <span class="k">if</span> <span class="n">rxn_family</span> <span class="o">==</span> <span class="n">family</span><span class="p">:</span>
-            <span class="n">reaction</span> <span class="o">=</span> <span class="n">get_rmg_reaction</span><span class="p">(</span><span class="n">rmg_database</span><span class="p">,</span> <span class="n">species_dict</span><span class="p">,</span> <span class="n">rxn_family</span><span class="p">,</span> <span class="n">reaction_line</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">rxn_family</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="n">family</span><span class="p">:</span>
+            <span class="n">reaction</span> <span class="o">=</span> <span class="n">get_rmg_reaction</span><span class="p">(</span><span class="n">rmg_database</span><span class="p">,</span> <span class="n">species_dict</span><span class="p">,</span> <span class="n">family</span><span class="p">,</span> <span class="n">reaction_line</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">reaction</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="n">features_for_reaction</span> <span class="o">=</span> <span class="n">get_features</span><span class="p">(</span><span class="n">reaction</span><span class="p">)</span>
@@ -12103,10 +12264,10 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[48]:</div>
+<div class="prompt input_prompt">In&nbsp;[86]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span></span><span class="n">get_family_data</span><span class="p">(</span><span class="s1">&#39;Silylene_Insertion&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s1">&#39;data_Silylene_Insertion.csv&#39;</span><span class="p">)</span>
+<div class=" highlight hl-ipython2"><pre><span></span><span class="n">family_data</span> <span class="o">=</span> <span class="n">get_family_data</span><span class="p">(</span><span class="s1">&#39;Silylene_Insertion&#39;</span><span class="p">)</span>
 </pre></div>
 
 </div>
@@ -12129,8 +12290,670 @@ WARNING:root:Unexpected behaviour may result!
 <div class="output_subarea output_stream output_stdout output_text">
 <pre>Loading RMG Database ...
 Finished loading RMG Database ...
+No RMG reactions found for reaction SiH3SiH(8)+SiH3SiH(8)=H8Si4(10)
+Not sure about reaction [H][H]+[SiH][SiH]=[SiH]_[SiH]=[SiH][SiH3], has contents estDists.txt
+Not sure about reaction [H][H]+[Si]1[SiH][SiH2]1_[SiH]1[SiH2][SiH2]1, has contents 
+Not sure about reaction [SiH2]+[Si]=[SiH2]_[Si]=[SiH][SiH3], has contents 
+Not sure about reaction [SiH4]+[Si]=[Si]_[Si]=[SiH][SiH3], has contents 
+Not sure about reaction [H][H]+[Si]=[SiH][SiH3]_[SiH2]=[SiH][SiH3], has contents 
+Not sure about reaction [SiH3]+[SiH]_[SiH2][SiH2], has contents 
+Not sure about reaction [SiH2][SiH3]+[SiH]_[SiH2][SiH2][SiH2], has contents 
 </pre>
 </div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[115]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span></span><span class="k">print</span> <span class="n">family_data</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>      H2  Sid_H Sid_Si_H Sirad_H Sirad_Si_H Success Code sil_H2  sil_d sil_rad
+0  False  False    False   False      False            S   True  False   False
+1  False  False    False    True      False           F2   True  False   False
+2   True  False    False   False      False            S  False   True   False
+3   True  False    False   False      False           F2  False   True   False
+4  False   True    False   False      False            S   True  False   False
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[116]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span></span><span class="n">family_data</span> <span class="o">=</span> <span class="n">family_data</span><span class="p">[</span><span class="n">family_data</span><span class="p">[</span><span class="s1">&#39;Success Code&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">notnull</span><span class="p">()]</span>
+<span class="k">print</span> <span class="n">family_data</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>(83, 9)
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[126]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span></span><span class="n">y</span> <span class="o">=</span> <span class="n">family_data</span><span class="p">[</span><span class="s1">&#39;Success Code&#39;</span><span class="p">]</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">family_data</span><span class="p">[</span><span class="n">family_data</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]]</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt"></div>
+<div class="output_subarea output_text output_error">
+<pre>
+<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
+<span class="ansi-red-fg">TypeError</span>                                 Traceback (most recent call last)
+<span class="ansi-green-fg">&lt;ipython-input-126-4f4ad0a9d608&gt;</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span><span class="ansi-blue-fg">()</span>
+<span class="ansi-green-intense-fg ansi-bold">      1</span> y <span class="ansi-blue-fg">=</span> family_data<span class="ansi-blue-fg">[</span><span class="ansi-blue-fg">&#39;Success Code&#39;</span><span class="ansi-blue-fg">]</span>
+<span class="ansi-green-fg">----&gt; 2</span><span class="ansi-red-fg"> </span>x <span class="ansi-blue-fg">=</span> family_data<span class="ansi-blue-fg">[</span>family_data<span class="ansi-blue-fg">.</span>columns<span class="ansi-blue-fg">[</span><span class="ansi-cyan-fg">0</span><span class="ansi-blue-fg">:</span><span class="ansi-cyan-fg">5</span><span class="ansi-blue-fg">]</span><span class="ansi-blue-fg">,</span> family_data<span class="ansi-blue-fg">.</span>columns<span class="ansi-blue-fg">[</span><span class="ansi-cyan-fg">6</span><span class="ansi-blue-fg">:</span><span class="ansi-cyan-fg">9</span><span class="ansi-blue-fg">]</span><span class="ansi-blue-fg">]</span>
+
+<span class="ansi-green-fg">/Users/belinda/.virtualenvs/rmgpy4/lib/python2.7/site-packages/pandas/core/frame.pyc</span> in <span class="ansi-cyan-fg">__getitem__</span><span class="ansi-blue-fg">(self, key)</span>
+<span class="ansi-green-intense-fg ansi-bold">   1995</span>             <span class="ansi-green-fg">return</span> self<span class="ansi-blue-fg">.</span>_getitem_multilevel<span class="ansi-blue-fg">(</span>key<span class="ansi-blue-fg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">   1996</span>         <span class="ansi-green-fg">else</span><span class="ansi-blue-fg">:</span>
+<span class="ansi-green-fg">-&gt; 1997</span><span class="ansi-red-fg">             </span><span class="ansi-green-fg">return</span> self<span class="ansi-blue-fg">.</span>_getitem_column<span class="ansi-blue-fg">(</span>key<span class="ansi-blue-fg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">   1998</span> 
+<span class="ansi-green-intense-fg ansi-bold">   1999</span>     <span class="ansi-green-fg">def</span> _getitem_column<span class="ansi-blue-fg">(</span>self<span class="ansi-blue-fg">,</span> key<span class="ansi-blue-fg">)</span><span class="ansi-blue-fg">:</span>
+
+<span class="ansi-green-fg">/Users/belinda/.virtualenvs/rmgpy4/lib/python2.7/site-packages/pandas/core/frame.pyc</span> in <span class="ansi-cyan-fg">_getitem_column</span><span class="ansi-blue-fg">(self, key)</span>
+<span class="ansi-green-intense-fg ansi-bold">   2002</span>         <span class="ansi-red-fg"># get column</span>
+<span class="ansi-green-intense-fg ansi-bold">   2003</span>         <span class="ansi-green-fg">if</span> self<span class="ansi-blue-fg">.</span>columns<span class="ansi-blue-fg">.</span>is_unique<span class="ansi-blue-fg">:</span>
+<span class="ansi-green-fg">-&gt; 2004</span><span class="ansi-red-fg">             </span><span class="ansi-green-fg">return</span> self<span class="ansi-blue-fg">.</span>_get_item_cache<span class="ansi-blue-fg">(</span>key<span class="ansi-blue-fg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">   2005</span> 
+<span class="ansi-green-intense-fg ansi-bold">   2006</span>         <span class="ansi-red-fg"># duplicate columns &amp; possible reduce dimensionality</span>
+
+<span class="ansi-green-fg">/Users/belinda/.virtualenvs/rmgpy4/lib/python2.7/site-packages/pandas/core/generic.pyc</span> in <span class="ansi-cyan-fg">_get_item_cache</span><span class="ansi-blue-fg">(self, item)</span>
+<span class="ansi-green-intense-fg ansi-bold">   1346</span>         <span class="ansi-blue-fg">&#34;&#34;&#34;Return the cached item, item represents a label indexer.&#34;&#34;&#34;</span>
+<span class="ansi-green-intense-fg ansi-bold">   1347</span>         cache <span class="ansi-blue-fg">=</span> self<span class="ansi-blue-fg">.</span>_item_cache
+<span class="ansi-green-fg">-&gt; 1348</span><span class="ansi-red-fg">         </span>res <span class="ansi-blue-fg">=</span> cache<span class="ansi-blue-fg">.</span>get<span class="ansi-blue-fg">(</span>item<span class="ansi-blue-fg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">   1349</span>         <span class="ansi-green-fg">if</span> res <span class="ansi-green-fg">is</span> None<span class="ansi-blue-fg">:</span>
+<span class="ansi-green-intense-fg ansi-bold">   1350</span>             values <span class="ansi-blue-fg">=</span> self<span class="ansi-blue-fg">.</span>_data<span class="ansi-blue-fg">.</span>get<span class="ansi-blue-fg">(</span>item<span class="ansi-blue-fg">)</span>
+
+<span class="ansi-green-fg">/Users/belinda/.virtualenvs/rmgpy4/lib/python2.7/site-packages/pandas/indexes/base.pyc</span> in <span class="ansi-cyan-fg">__hash__</span><span class="ansi-blue-fg">(self)</span>
+<span class="ansi-green-intense-fg ansi-bold">   1240</span> 
+<span class="ansi-green-intense-fg ansi-bold">   1241</span>     <span class="ansi-green-fg">def</span> __hash__<span class="ansi-blue-fg">(</span>self<span class="ansi-blue-fg">)</span><span class="ansi-blue-fg">:</span>
+<span class="ansi-green-fg">-&gt; 1242</span><span class="ansi-red-fg">         </span><span class="ansi-green-fg">raise</span> TypeError<span class="ansi-blue-fg">(</span><span class="ansi-blue-fg">&#34;unhashable type: %r&#34;</span> <span class="ansi-blue-fg">%</span> type<span class="ansi-blue-fg">(</span>self<span class="ansi-blue-fg">)</span><span class="ansi-blue-fg">.</span>__name__<span class="ansi-blue-fg">)</span>
+<span class="ansi-green-intense-fg ansi-bold">   1243</span> 
+<span class="ansi-green-intense-fg ansi-bold">   1244</span>     <span class="ansi-green-fg">def</span> __setitem__<span class="ansi-blue-fg">(</span>self<span class="ansi-blue-fg">,</span> key<span class="ansi-blue-fg">,</span> value<span class="ansi-blue-fg">)</span><span class="ansi-blue-fg">:</span>
+
+<span class="ansi-red-fg">TypeError</span>: unhashable type: &#39;Index&#39;</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[124]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span></span><span class="n">x</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt output_prompt">Out[124]:</div>
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>H2</th>
+      <th>Sid_H</th>
+      <th>Sid_Si_H</th>
+      <th>Sirad_H</th>
+      <th>Sirad_Si_H</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>True</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>False</td>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>True</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>False</td>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>True</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>13</th>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>False</td>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>15</th>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>16</th>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>17</th>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>18</th>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>19</th>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>True</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>20</th>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>21</th>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>22</th>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>23</th>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>24</th>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>True</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>25</th>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>26</th>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>27</th>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>28</th>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>True</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>29</th>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>53</th>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>54</th>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>55</th>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>56</th>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>57</th>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>58</th>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>59</th>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>60</th>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>61</th>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>69</th>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>True</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>70</th>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>True</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>71</th>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>True</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>72</th>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>73</th>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>True</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>74</th>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>True</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>76</th>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>77</th>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>True</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>78</th>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>79</th>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>80</th>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>81</th>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>True</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>82</th>
+      <td>False</td>
+      <td>True</td>
+      <td>False</td>
+      <td>True</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>83</th>
+      <td>False</td>
+      <td>True</td>
+      <td>False</td>
+      <td>True</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>84</th>
+      <td>False</td>
+      <td>True</td>
+      <td>False</td>
+      <td>True</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>85</th>
+      <td>False</td>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>86</th>
+      <td>False</td>
+      <td>True</td>
+      <td>False</td>
+      <td>True</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>87</th>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>88</th>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>89</th>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>90</th>
+      <td>True</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+  </tbody>
+</table>
+<p>83 rows × 5 columns</p>
+</div>
+</div>
+
 </div>
 
 </div>
