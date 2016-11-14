@@ -142,7 +142,7 @@ def get_success(reaction):
 print get_success(rxn)
 
 
-# In[135]:
+# In[235]:
 
 def get_family_data(family):
     """
@@ -171,7 +171,7 @@ def get_family_data(family):
     return pd.DataFrame().from_dict(data)
 
 
-# In[136]:
+# In[236]:
 
 family_data = get_family_data('Silylene_Insertion')
 
@@ -181,7 +181,7 @@ family_data = get_family_data('Silylene_Insertion')
 print family_data.head()
 
 
-# In[143]:
+# In[262]:
 
 family_data = family_data[family_data['Success Code'].notnull()]
 print family_data.shape
@@ -208,53 +208,77 @@ average_H2_value = family_data.groupby('Success Code')['H2', 'Sirad_H', 'sil_H2'
 average_H2_value.plot.bar()
 
 
-# In[147]:
+# In[302]:
 
-from sklearn import cross_validation
-from sklearn.cross_validation import cross_val_score, train_test_split
+from sklearn.cross_validation import ShuffleSplit, cross_val_score, train_test_split, StratifiedKFold
 from sklearn.linear_model import LogisticRegression
 
 
-# In[149]:
+# In[290]:
 
 y = family_data['Success Code']
-x = family_data[[column for column in family_data.columns if column not in ['Success Code', 'reaction']]]
+X = family_data[[column for column in family_data.columns if column not in ['Success Code', 'reaction']]]
 
 
-# In[150]:
+# In[291]:
 
-cv = cross_validation.ShuffleSplit(x.shape[0], test_size=0.2, random_state=9)
-log_reg = LogisticRegression()#LogisticRegression(multi_class='multinomial', solver='lbfgs')
-cross_val_score(log_reg, x, y, cv=cv)
+log_reg = LogisticRegression(class_weight='balanced')#)#LogisticRegression(multi_class='multinomial', solver='lbfgs')
 
 
-# In[151]:
+# In[292]:
 
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2, random_state = 9)
-
-
-# In[152]:
-
-log_reg.fit(x_train, y_train)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1, random_state = 9)
 
 
-# In[153]:
+# In[293]:
 
-log_reg.score(x_test, y_test)
+log_reg.fit(X_train, y_train)
 
 
-# In[154]:
+# In[294]:
+
+log_reg.score(X_test, y_test)
+
+
+# In[295]:
 
 print log_reg.coef_
 print log_reg.classes_
 
 
-# In[155]:
+# In[296]:
 
-zip(y_test, log_reg.predict(x_test))
+zip(y_test, log_reg.predict(X_test))
 
 
-# It's predicting F2 every time. Probably because training set has so many F2. Can we leave them out?
+# Try doing StratifiedKFold for cross validation- keep training and test set with proportional number of class labels 
+
+# In[297]:
+
+cv_skf = StratifiedKFold(y, n_folds=3, random_state=9)
+for train_index, test_index in cv_skf:
+    X_train, X_test = X.iloc[train_index,:], X.iloc[test_index,:]
+    y_train, y_test = y.iloc[train_index], y.iloc[test_index]
+    log_reg.fit(X_train, y_train)
+    print log_reg.score(X_test, y_test)
+    print zip(y_test, log_reg.predict(X_test))
+    print '\n'
+
+
+# In[298]:
+
+# Remove features which may not be independent
+# For example, if H2 is true, then all the Si_H ones are false
+X = family_data[[column for column in family_data.columns if column not in ['Success Code', 'reaction', 'H2', 'sil_H2']]]
+
+
+# In[301]:
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1, random_state = 9)
+log_reg.fit(X_train, y_train)
+print log_reg.score(X_test, y_test)
+print zip(y_test, log_reg.predict(X_test))
+
 
 # In[ ]:
 
