@@ -1,93 +1,21 @@
 
 # coding: utf-8
 
-# In[18]:
+# In[1]:
 
 import os
-import sys
 
-import rmgpy
 from rmgpy.molecule import Molecule
 from rmgpy.reaction import Reaction
 from rmgpy.species import Species
 from rmgpy.data.kinetics import KineticsFamily, ReactionRecipe, KineticsDatabase
-from rmgpy.data.rmg import RMGDatabase
+
+from rmg_helper_functions import find_reaction_folder, load_mechanism, get_rmg_reaction
 
 import pandas as pd
 
 
-# In[19]:
-
-def find_reaction_folder(reaction, family=None):
-    """
-    Given rmgpy.reaction.Reaction() 'reaction', return the folder containing the TS calculation results as a string
-    """
-    scratch_dir = os.getenv('SCRATCH') 
-    if scratch_dir is None:
-        scratch_dir = os.getenv('RMGpy')
-        
-    if family is None:
-        family = reaction.family
-        
-    r1_smiles = reaction.reactants[0].molecule[0].toSMILES()
-    r2_smiles = reaction.reactants[1].molecule[0].toSMILES()
-    p_smiles = reaction.products[0].molecule[0].toSMILES()
-    possible_folders = ["{0}+{1}_{2}".format(r1_smiles, r2_smiles, p_smiles), "{0}+{1}_{2}".format(r2_smiles, r1_smiles, p_smiles)]
-            
-    my_folder = None
-    for folder in possible_folders:
-        if os.path.exists(os.path.join(scratch_dir, 'QMfiles/Reactions', family, folder)):
-            my_folder = folder
-            break
-    return my_folder
-
-
-# In[21]:
-
-r1 = Species(molecule=[Molecule().fromSMILES('[SiH2]')])
-r2 = Species(molecule=[Molecule().fromSMILES('[SiH4]')])
-p1 = Species(molecule=[Molecule().fromSMILES('[SiH3][SiH3]')])
-print find_reaction_folder(Reaction(reactants=[r1,r2], products=[p1]), family='Silylene_Insertion')
-
-
-# In[4]:
-
-def load_mechanism(mech_file, dict_file):
-    """
-    Loads the RMG database and processes a chemical mechanism. 
-    
-    Returns loaded rmgpy.data.rmg.RMGDatabase(), list of 
-    reactions and their families, and species dictionary
-    """
-    print 'Loading RMG Database ...'
-    families = ['Silylene_Insertion', 'H_Abstraction']
-    rmgDatabase = RMGDatabase()
-    rmgDatabase.load(os.path.abspath(os.path.join(os.getenv('RMGpy'), '..', 'RMG-database', 'input')), 
-                     kineticsFamilies=families, seedMechanisms=[], solvation=False)
-    print 'Finished loading RMG Database ...'
-
-    loadSpecies = rmgDatabase.kinetics.families[families[0]] # any family will do
-    species_dict = loadSpecies.getSpecies(dict_file)
-
-    file_object = open(mech_file, 'r')
-    mechLines = file_object.readlines()
-
-    rxnList = []
-    gotit = []
-    for k, line in enumerate(mechLines):
-        if line.startswith('! Template reaction:'):
-            for m in range(10):
-                reaction = mechLines[k+m].split()[0]
-                if not reaction.startswith('!'):
-                    break
-            if reaction not in gotit:
-                gotit.append(reaction)
-                rxnList.append((line.split(': ')[1], mechLines[k+m]))
-
-    return rmgDatabase, rxnList, species_dict
-
-
-# In[22]:
+# In[2]:
 
 database, reaction_list, species_dict = load_mechanism(
         'sih4_mech/chem_edge_annotated.inp', 'sih4_mech/species_edge_dictionary.txt')
@@ -95,104 +23,13 @@ database, reaction_list, species_dict = load_mechanism(
 
 # In[3]:
 
-def get_rmg_reaction(database, species_dict, family, mech_line):
-    """
-    This function takes in:
-    
-    a loaded rmgpy.data.rmg.RMGDatabase() 'database'
-    RMG reaction family 'family' as a string
-    a reaction line from a chemkin file 'mech_line' as a string
-    species dictionary 'species_dict' associated with the mechanism
-    
-    It returns the associated RMG reaction if it's possible 
-    to make one. If not, return 'None'
-    """
-    rxnFormula, A, n, Ea = mech_line.split()
-    reactants, products = rxnFormula.split('=')
-    if family in ['H_Abstraction', 'Disproportionation', 'Cl-Abstraction']:
-        rSpecies1, rSpecies2 = [species_dict[j] for j in reactants.split('+')]
-        pSpecies1, pSpecies2 = [species_dict[j] for j in products.split('+')]
-        rSpecies1.generateResonanceIsomers()
-        rSpecies2.generateResonanceIsomers()
-        pSpecies1.generateResonanceIsomers()
-        pSpecies2.generateResonanceIsomers()
-        testReaction = Reaction(reactants=[rSpecies1, rSpecies2], products=[pSpecies1, pSpecies2], reversible=True)
-        reactionList = []
-        for moleculeA in rSpecies1.molecule:
-            for moleculeB in rSpecies2.molecule:
-                tempList = database.kinetics.generateReactionsFromFamilies([moleculeA, moleculeB], [], only_families=[family])
-                for rxn0 in tempList:
-                    reactionList.append(rxn0)
-    elif family in ['intra_H_migration']:
-        rSpecies = species_dict[reactants]
-        pSpecies = species_dict[products]
-        rSpecies.generateResonanceIsomers()
-        pSpecies.generateResonanceIsomers()
-        testReaction = Reaction(reactants=[rSpecies], products=[pSpecies], reversible=True)
-        reactionList = []
-        for moleculeA in rSpecies.molecule:
-            tempList = database.kinetics.generateReactionsFromFamilies([moleculeA], [], only_families=[family])
-            for rxn0 in tempList:
-                reactionList.append(rxn0)
-    elif family in ['R_Addition_MultipleBond', 'Silylene_Insertion']:
-        if '(+M)' in reactants:
-            reactants = reactants.split('(+M)')[0]
-            products = products.split('(+M)')[0]
-        if len(reactants.split('+'))==2:
-            rSpecies1, rSpecies2 = [species_dict[j] for j in reactants.split('+')]
-            pSpecies = species_dict[products]
-        else:
-            rSpecies1, rSpecies2 = [species_dict[j] for j in products.split('+')]
-            pSpecies = species_dict[reactants]
-        rSpecies1.generateResonanceIsomers()
-        rSpecies2.generateResonanceIsomers()
-        pSpecies.generateResonanceIsomers()
-        testReaction = Reaction(reactants=[rSpecies1, rSpecies2], products=[pSpecies], reversible=False)
-        reactionList = []
-        for moleculeA in rSpecies1.molecule:
-            for moleculeB in rSpecies2.molecule:
-                tempList = database.kinetics.generateReactionsFromFamilies([moleculeA, moleculeB], [], only_families=[family])
-                for rxn0 in tempList:
-                    reactionList.append(rxn0)
-    
-    gotOne=False
-    for reaction in reactionList:
-    # Check if any of the RMG proposed reactions matches the reaction in the mechanism
-        if reaction.isIsomorphic(testReaction):
-            # Now add the labeled atoms to the Molecule, and check all labels were added
-            atLblsR = dict([(lbl[0], False) for lbl in reaction.labeledAtoms])
-            atLblsP = dict([(lbl[0], False) for lbl in reaction.labeledAtoms])
-
-            for reactant in reaction.reactants:
-                reactant = reactant.molecule[0]
-                reactant.clearLabeledAtoms()
-                for atom in reactant.atoms:
-                    for atomLabel in reaction.labeledAtoms:
-                        if atom==atomLabel[1]:
-                            atom.label = atomLabel[0]
-                            atLblsR[atomLabel[0]] = True
-            for product in reaction.products:
-                product = product.molecule[0]
-                product.clearLabeledAtoms()
-                for atom in product.atoms:
-                    for atomLabel in reaction.labeledAtoms:
-                        if atom==atomLabel[1]:
-                            atom.label = atomLabel[0]
-                            atLblsP[atomLabel[0]] = True
-            if all( atLblsR.values() ) and all( atLblsP.values() ):
-                return reaction
-    
-    return None
-
-
-# In[90]:
-
 print reaction_list[5]
 rxn = get_rmg_reaction(database, species_dict, 'Silylene_Insertion', reaction_list[5][1])
-rxn.reactants, rxn.products
+print rxn.reactants, rxn.products
+rxn
 
 
-# In[55]:
+# In[131]:
 
 def get_features(reaction):
     """
@@ -201,8 +38,11 @@ def get_features(reaction):
     
     Currently specific to Silylene Insertion reactions
     """
-    features = ['H2', 'Sirad_H', 'Sirad_Si_H', 'Sid_H', 'Sid_Si_H', 'sil_H2', 'sil_rad', 'sil_d', 'Success Code']
+    features = ['reaction', 'H2', 'Sirad_H', 'Sirad_Si_H', 'Sid_H', 'Sid_Si_H', 'sil_H2', 'sil_rad', 'sil_d', 'Success Rate']
     feature_dict = dict.fromkeys(features[:-1], False)
+    feature_dict.update(dict.fromkeys(['reaction'], 
+                                      '+'.join([r.molecule[0].toSMILES() for r in reaction.reactants]) 
+                                      + '_' + '+'.join([p.molecule[0].toSMILES() for p in reaction.products])))
     
     if '[H][H]' in [r.molecule[0].toSMILES() for r in reaction.reactants]:
         feature_dict.update(dict.fromkeys(['H2'], True))
@@ -242,12 +82,12 @@ def get_features(reaction):
     return feature_dict
 
 
-# In[56]:
+# In[132]:
 
 print get_features(rxn)
 
 
-# In[85]:
+# In[133]:
 
 def get_success(reaction):
     """
@@ -260,7 +100,7 @@ def get_success(reaction):
     if scratch_dir is None:
         scratch_dir = os.getenv('RMGpy')
     
-    success = 
+    success = None
     family = reaction.family
     try:
         my_folder = find_reaction_folder(reaction)
@@ -270,7 +110,7 @@ def get_success(reaction):
             reaction.product[0].molecule[0].toSMILES())
     
     if my_folder:
-        if os.path.exists(os.path.join('false_positives', my_folder)):
+        if os.path.exists(os.path.join(scratch_dir, 'QMfiles/Reactions', family, 'false_positives', my_folder)):
             success = 'FP' # false positive
         else:
             if os.path.exists(os.path.join(scratch_dir, 'QMfiles/Reactions', family, my_folder, 'm062x', 'error.txt')):
@@ -297,12 +137,12 @@ def get_success(reaction):
     return success
 
 
-# In[58]:
+# In[134]:
 
 print get_success(rxn)
 
 
-# In[77]:
+# In[135]:
 
 def get_family_data(family):
     """
@@ -331,35 +171,90 @@ def get_family_data(family):
     return pd.DataFrame().from_dict(data)
 
 
-# In[86]:
+# In[136]:
 
 family_data = get_family_data('Silylene_Insertion')
 
 
-# In[115]:
+# In[139]:
 
 print family_data.head()
 
 
-# In[116]:
+# In[143]:
 
 family_data = family_data[family_data['Success Code'].notnull()]
 print family_data.shape
 
 
-# In[127]:
+# In[144]:
+
+import matplotlib.pyplot as plt
+import seaborn
+get_ipython().magic(u'matplotlib inline')
+
+
+# In[145]:
+
+family_data.groupby('Success Code').size().plot(kind='bar')
+plt.xlabel('Success Code')
+plt.ylabel('Frequency')
+plt.show()
+
+
+# In[146]:
+
+average_H2_value = family_data.groupby('Success Code')['H2', 'Sirad_H', 'sil_H2'].mean()
+average_H2_value.plot.bar()
+
+
+# In[147]:
+
+from sklearn import cross_validation
+from sklearn.cross_validation import cross_val_score, train_test_split
+from sklearn.linear_model import LogisticRegression
+
+
+# In[149]:
 
 y = family_data['Success Code']
-x = family_data[family_data.columns[0:5]]
-# HOw to join multiple slices
-# is it better to store array as boolean or 0s and 1s
-# should I store it as numpy array instead
+x = family_data[[column for column in family_data.columns if column not in ['Success Code', 'reaction']]]
 
 
-# In[128]:
+# In[150]:
 
-x
+cv = cross_validation.ShuffleSplit(x.shape[0], test_size=0.2, random_state=9)
+log_reg = LogisticRegression()#LogisticRegression(multi_class='multinomial', solver='lbfgs')
+cross_val_score(log_reg, x, y, cv=cv)
 
+
+# In[151]:
+
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.2, random_state = 9)
+
+
+# In[152]:
+
+log_reg.fit(x_train, y_train)
+
+
+# In[153]:
+
+log_reg.score(x_test, y_test)
+
+
+# In[154]:
+
+print log_reg.coef_
+print log_reg.classes_
+
+
+# In[155]:
+
+zip(y_test, log_reg.predict(x_test))
+
+
+# It's predicting F2 every time. Probably because training set has so many F2. Can we leave them out?
 
 # In[ ]:
 
