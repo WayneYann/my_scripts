@@ -29,7 +29,7 @@ print rxn.reactants, rxn.products
 rxn
 
 
-# In[131]:
+# In[4]:
 
 def get_features(reaction):
     """
@@ -82,12 +82,12 @@ def get_features(reaction):
     return feature_dict
 
 
-# In[132]:
+# In[5]:
 
 print get_features(rxn)
 
 
-# In[133]:
+# In[6]:
 
 def get_success(reaction):
     """
@@ -137,12 +137,12 @@ def get_success(reaction):
     return success
 
 
-# In[134]:
+# In[7]:
 
 print get_success(rxn)
 
 
-# In[235]:
+# In[8]:
 
 def get_family_data(family):
     """
@@ -171,30 +171,31 @@ def get_family_data(family):
     return pd.DataFrame().from_dict(data)
 
 
-# In[236]:
+# In[9]:
 
 family_data = get_family_data('Silylene_Insertion')
 
 
-# In[139]:
+# In[10]:
 
 print family_data.head()
 
 
-# In[262]:
+# In[11]:
 
 family_data = family_data[family_data['Success Code'].notnull()]
 print family_data.shape
 
 
-# In[144]:
+# In[118]:
 
+import numpy as np
 import matplotlib.pyplot as plt
 import seaborn
 get_ipython().magic(u'matplotlib inline')
 
 
-# In[145]:
+# In[13]:
 
 family_data.groupby('Success Code').size().plot(kind='bar')
 plt.xlabel('Success Code')
@@ -202,85 +203,103 @@ plt.ylabel('Frequency')
 plt.show()
 
 
-# In[146]:
+# In[14]:
 
 average_H2_value = family_data.groupby('Success Code')['H2', 'Sirad_H', 'sil_H2'].mean()
 average_H2_value.plot.bar()
 
 
-# In[302]:
+# In[29]:
 
 from sklearn.cross_validation import ShuffleSplit, cross_val_score, train_test_split, StratifiedKFold
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import confusion_matrix
 
 
-# In[290]:
+# In[58]:
 
 y = family_data['Success Code']
 X = family_data[[column for column in family_data.columns if column not in ['Success Code', 'reaction']]]
 
 
-# In[291]:
+# In[59]:
 
 log_reg = LogisticRegression(class_weight='balanced')#)#LogisticRegression(multi_class='multinomial', solver='lbfgs')
-
-
-# In[292]:
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1, random_state = 9)
-
-
-# In[293]:
-
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1, random_state=9)
 log_reg.fit(X_train, y_train)
 
 
-# In[294]:
+# In[48]:
 
 log_reg.score(X_test, y_test)
 
 
-# In[295]:
+# In[49]:
 
 print log_reg.coef_
 print log_reg.classes_
+print X.columns
 
 
-# In[296]:
+# In[50]:
 
 zip(y_test, log_reg.predict(X_test))
 
 
 # Try doing StratifiedKFold for cross validation- keep training and test set with proportional number of class labels 
 
-# In[297]:
+# In[63]:
 
-cv_skf = StratifiedKFold(y, n_folds=3, random_state=9)
+cv_skf = StratifiedKFold(y, random_state=9)
+sum_scores = 0.0
 for train_index, test_index in cv_skf:
     X_train, X_test = X.iloc[train_index,:], X.iloc[test_index,:]
     y_train, y_test = y.iloc[train_index], y.iloc[test_index]
     log_reg.fit(X_train, y_train)
+    sum_scores += log_reg.score(X_test, y_test)
     print log_reg.score(X_test, y_test)
     print zip(y_test, log_reg.predict(X_test))
     print '\n'
+print "Avg score: {0}".format(round(sum_scores/len(cv_skf), 3))
 
 
-# In[298]:
+# In[64]:
+
+predictions = log_reg.predict(X)
+performance = pd.DataFrame(data=zip(y, predictions), columns = ['Actual', 'Prediction'])
+
+
+# In[108]:
+
+cm = confusion_matrix(y, predictions, labels=['S', 'FP', 'F1', 'F2'])
+cm_df = pd.DataFrame(data=cm, columns=['S', 'FP', 'F1', 'F2'])
+print cm_df
+
+
+# In[109]:
+
+percents = cm_df.iloc[:].transpose().apply(lambda x: x/x.sum()).transpose()
+
+
+# In[120]:
+
+print percents
+percents.plot.bar()
+plt.xticks(np.arange(4), ('S', 'FP', 'F1', 'F2') )
+
+
+# #### Do a grid search to figure out best parameters for model (ie size of test set etc.)
+# #### Include more features, remove unnecessary (Sid_Si_H is always False for this set)
 
 # Remove features which may not be independent
+# 
 # For example, if H2 is true, then all the Si_H ones are false
+
+# In[60]:
+
 X = family_data[[column for column in family_data.columns if column not in ['Success Code', 'reaction', 'H2', 'sil_H2']]]
-
-
-# In[301]:
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1, random_state = 9)
 log_reg.fit(X_train, y_train)
-print log_reg.score(X_test, y_test)
-print zip(y_test, log_reg.predict(X_test))
-
-
-# In[ ]:
-
-
+log_reg.score(X_test, y_test)
 
