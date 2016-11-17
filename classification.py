@@ -187,7 +187,7 @@ family_data = family_data[family_data['Success Code'].notnull()]
 print family_data.shape
 
 
-# In[118]:
+# In[12]:
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -209,46 +209,46 @@ average_H2_value = family_data.groupby('Success Code')['H2', 'Sirad_H', 'sil_H2'
 average_H2_value.plot.bar()
 
 
-# In[29]:
+# In[15]:
 
-from sklearn.cross_validation import ShuffleSplit, cross_val_score, train_test_split, StratifiedKFold
+from sklearn.cross_validation import cross_val_score, train_test_split, StratifiedKFold
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix
 
 
-# In[58]:
+# In[16]:
 
 y = family_data['Success Code']
 X = family_data[[column for column in family_data.columns if column not in ['Success Code', 'reaction']]]
 
 
-# In[59]:
+# In[17]:
 
 log_reg = LogisticRegression(class_weight='balanced')#)#LogisticRegression(multi_class='multinomial', solver='lbfgs')
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1, random_state=9)
 log_reg.fit(X_train, y_train)
 
 
-# In[48]:
+# In[18]:
 
 log_reg.score(X_test, y_test)
 
 
-# In[49]:
+# In[19]:
 
 print log_reg.coef_
 print log_reg.classes_
 print X.columns
 
 
-# In[50]:
+# In[20]:
 
 zip(y_test, log_reg.predict(X_test))
 
 
 # Try doing StratifiedKFold for cross validation- keep training and test set with proportional number of class labels 
 
-# In[63]:
+# In[21]:
 
 cv_skf = StratifiedKFold(y, random_state=9)
 sum_scores = 0.0
@@ -263,25 +263,25 @@ for train_index, test_index in cv_skf:
 print "Avg score: {0}".format(round(sum_scores/len(cv_skf), 3))
 
 
-# In[64]:
+# In[22]:
 
 predictions = log_reg.predict(X)
 performance = pd.DataFrame(data=zip(y, predictions), columns = ['Actual', 'Prediction'])
 
 
-# In[108]:
+# In[23]:
 
 cm = confusion_matrix(y, predictions, labels=['S', 'FP', 'F1', 'F2'])
 cm_df = pd.DataFrame(data=cm, columns=['S', 'FP', 'F1', 'F2'])
 print cm_df
 
 
-# In[109]:
+# In[24]:
 
 percents = cm_df.iloc[:].transpose().apply(lambda x: x/x.sum()).transpose()
 
 
-# In[120]:
+# In[25]:
 
 print percents
 percents.plot.bar()
@@ -294,12 +294,10 @@ plt.xticks(np.arange(4), ('S', 'FP', 'F1', 'F2') )
 # Remove features which may not be independent
 # 
 # For example, if H2 is true, then all the Si_H ones are false
+# 
+# Undersample F2
 
-# In[60]:
+# In[ ]:
 
-X = family_data[[column for column in family_data.columns if column not in ['Success Code', 'reaction', 'H2', 'sil_H2']]]
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1, random_state = 9)
-log_reg.fit(X_train, y_train)
-log_reg.score(X_test, y_test)
 

@@ -12196,7 +12196,7 @@ Not sure about reaction [SiH2][SiH3]+[SiH]_[SiH2][SiH2][SiH2], has contents
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[118]:</div>
+<div class="prompt input_prompt">In&nbsp;[12]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
@@ -12419,7 +12419,7 @@ GCYkSVIRw4QkSSpimJAkSUUME5IkqYhhQpIkFTFMSJKkIv8fvT1FfcxLGcUAAAAASUVORK5CYII=
 
 
 <div class="output_text output_subarea output_execute_result">
-<pre>&lt;matplotlib.axes._subplots.AxesSubplot at 0x116cc7490&gt;</pre>
+<pre>&lt;matplotlib.axes._subplots.AxesSubplot at 0x10e37b6d0&gt;</pre>
 </div>
 
 </div>
@@ -12667,10 +12667,10 @@ IiIiMaYgICIiEmMKAiIiIjGmICAiIhJjCgIiIiIxpiAgIiISYwoCIiIiMaYgICIiEmMKAiIiIjH2
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[29]:</div>
+<div class="prompt input_prompt">In&nbsp;[15]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span></span><span class="kn">from</span> <span class="nn">sklearn.cross_validation</span> <span class="kn">import</span> <span class="n">ShuffleSplit</span><span class="p">,</span> <span class="n">cross_val_score</span><span class="p">,</span> <span class="n">train_test_split</span><span class="p">,</span> <span class="n">StratifiedKFold</span>
+<div class=" highlight hl-ipython2"><pre><span></span><span class="kn">from</span> <span class="nn">sklearn.cross_validation</span> <span class="kn">import</span> <span class="n">cross_val_score</span><span class="p">,</span> <span class="n">train_test_split</span><span class="p">,</span> <span class="n">StratifiedKFold</span>
 <span class="kn">from</span> <span class="nn">sklearn.linear_model</span> <span class="kn">import</span> <span class="n">LogisticRegression</span>
 <span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">confusion_matrix</span>
 </pre></div>
@@ -12682,7 +12682,7 @@ IiIiMaYgICIiEmMKAiIiIjGmICAiIhJjCgIiIiIxpiAgIiISYwoCIiIiMaYgICIiEmMKAiIiIjH2
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[58]:</div>
+<div class="prompt input_prompt">In&nbsp;[16]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">y</span> <span class="o">=</span> <span class="n">family_data</span><span class="p">[</span><span class="s1">&#39;Success Code&#39;</span><span class="p">]</span>
@@ -12696,7 +12696,7 @@ IiIiMaYgICIiEmMKAiIiIjGmICAiIhJjCgIiIiIxpiAgIiISYwoCIiIiMaYgICIiEmMKAiIiIjH2
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[59]:</div>
+<div class="prompt input_prompt">In&nbsp;[17]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">log_reg</span> <span class="o">=</span> <span class="n">LogisticRegression</span><span class="p">(</span><span class="n">class_weight</span><span class="o">=</span><span class="s1">&#39;balanced&#39;</span><span class="p">)</span><span class="c1">#)#LogisticRegression(multi_class=&#39;multinomial&#39;, solver=&#39;lbfgs&#39;)</span>
@@ -12712,7 +12712,7 @@ IiIiMaYgICIiEmMKAiIiIjGmICAiIhJjCgIiIiIxpiAgIiISYwoCIiIiMaYgICIiEmMKAiIiIjH2
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[59]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[17]:</div>
 
 
 <div class="output_text output_subarea output_execute_result">
@@ -12730,7 +12730,7 @@ IiIiMaYgICIiEmMKAiIiIjGmICAiIhJjCgIiIiIxpiAgIiISYwoCIiIiMaYgICIiEmMKAiIiIjH2
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[48]:</div>
+<div class="prompt input_prompt">In&nbsp;[18]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">log_reg</span><span class="o">.</span><span class="n">score</span><span class="p">(</span><span class="n">X_test</span><span class="p">,</span> <span class="n">y_test</span><span class="p">)</span>
@@ -12744,7 +12744,7 @@ IiIiMaYgICIiEmMKAiIiIjGmICAiIhJjCgIiIiIxpiAgIiISYwoCIiIiMaYgICIiEmMKAiIiIjH2
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[48]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[18]:</div>
 
 
 <div class="output_text output_subarea output_execute_result">
@@ -12759,7 +12759,7 @@ IiIiMaYgICIiEmMKAiIiIjGmICAiIhJjCgIiIiIxpiAgIiISYwoCIiIiMaYgICIiEmMKAiIiIjH2
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[49]:</div>
+<div class="prompt input_prompt">In&nbsp;[19]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="k">print</span> <span class="n">log_reg</span><span class="o">.</span><span class="n">coef_</span>
@@ -12799,7 +12799,7 @@ Index([u&#39;H2&#39;, u&#39;Sid_H&#39;, u&#39;Sid_Si_H&#39;, u&#39;Sirad_H&#39;,
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[50]:</div>
+<div class="prompt input_prompt">In&nbsp;[20]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="nb">zip</span><span class="p">(</span><span class="n">y_test</span><span class="p">,</span> <span class="n">log_reg</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">))</span>
@@ -12813,7 +12813,7 @@ Index([u&#39;H2&#39;, u&#39;Sid_H&#39;, u&#39;Sid_Si_H&#39;, u&#39;Sirad_H&#39;,
 <div class="output">
 
 
-<div class="output_area"><div class="prompt output_prompt">Out[50]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[20]:</div>
 
 
 <div class="output_text output_subarea output_execute_result">
@@ -12846,7 +12846,7 @@ Index([u&#39;H2&#39;, u&#39;Sid_H&#39;, u&#39;Sid_Si_H&#39;, u&#39;Sirad_H&#39;,
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[63]:</div>
+<div class="prompt input_prompt">In&nbsp;[21]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">cv_skf</span> <span class="o">=</span> <span class="n">StratifiedKFold</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
@@ -12895,7 +12895,7 @@ Avg score: 0.442
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[64]:</div>
+<div class="prompt input_prompt">In&nbsp;[22]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">predictions</span> <span class="o">=</span> <span class="n">log_reg</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
@@ -12909,7 +12909,7 @@ Avg score: 0.442
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[108]:</div>
+<div class="prompt input_prompt">In&nbsp;[23]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">cm</span> <span class="o">=</span> <span class="n">confusion_matrix</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">predictions</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;S&#39;</span><span class="p">,</span> <span class="s1">&#39;FP&#39;</span><span class="p">,</span> <span class="s1">&#39;F1&#39;</span><span class="p">,</span> <span class="s1">&#39;F2&#39;</span><span class="p">])</span>
@@ -12942,7 +12942,7 @@ Avg score: 0.442
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[109]:</div>
+<div class="prompt input_prompt">In&nbsp;[24]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="n">percents</span> <span class="o">=</span> <span class="n">cm_df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:]</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">/</span><span class="n">x</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
@@ -12955,7 +12955,7 @@ Avg score: 0.442
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[120]:</div>
+<div class="prompt input_prompt">In&nbsp;[25]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span></span><span class="k">print</span> <span class="n">percents</span>
@@ -12982,14 +12982,14 @@ Avg score: 0.442
 </div>
 </div>
 
-<div class="output_area"><div class="prompt output_prompt">Out[120]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[25]:</div>
 
 
 <div class="output_text output_subarea output_execute_result">
-<pre>([&lt;matplotlib.axis.XTick at 0x116e54d90&gt;,
-  &lt;matplotlib.axis.XTick at 0x115e0dc90&gt;,
-  &lt;matplotlib.axis.XTick at 0x11508b190&gt;,
-  &lt;matplotlib.axis.XTick at 0x11508b810&gt;],
+<pre>([&lt;matplotlib.axis.XTick at 0x10f63e350&gt;,
+  &lt;matplotlib.axis.XTick at 0x10e38cc90&gt;,
+  &lt;matplotlib.axis.XTick at 0x10eba0f50&gt;,
+  &lt;matplotlib.axis.XTick at 0x10eb44650&gt;],
  &lt;a list of 4 Text xticklabel objects&gt;)</pre>
 </div>
 
@@ -13210,39 +13210,20 @@ mEFAkqQCMwhIklRg/x8C5d6tPNYdeAAAAABJRU5ErkJggg==
 <div class="text_cell_render border-box-sizing rendered_html">
 <p>Remove features which may not be independent</p>
 <p>For example, if H2 is true, then all the Si_H ones are false</p>
+<p>Undersample F2</p>
 
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[60]:</div>
+<div class="prompt input_prompt">In&nbsp;[&nbsp;]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span></span><span class="n">X</span> <span class="o">=</span> <span class="n">family_data</span><span class="p">[[</span><span class="n">column</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">family_data</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">column</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;Success Code&#39;</span><span class="p">,</span> <span class="s1">&#39;reaction&#39;</span><span class="p">,</span> <span class="s1">&#39;H2&#39;</span><span class="p">,</span> <span class="s1">&#39;sil_H2&#39;</span><span class="p">]]]</span>
-
-<span class="n">X_train</span><span class="p">,</span> <span class="n">X_test</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">y_test</span> <span class="o">=</span> <span class="n">train_test_split</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">test_size</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="n">random_state</span> <span class="o">=</span> <span class="mi">9</span><span class="p">)</span>
-<span class="n">log_reg</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
-<span class="n">log_reg</span><span class="o">.</span><span class="n">score</span><span class="p">(</span><span class="n">X_test</span><span class="p">,</span> <span class="n">y_test</span><span class="p">)</span>
+<div class=" highlight hl-ipython2"><pre><span></span> 
 </pre></div>
 
 </div>
-</div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area"><div class="prompt output_prompt">Out[60]:</div>
-
-
-<div class="output_text output_subarea output_execute_result">
-<pre>0.33333333333333331</pre>
-</div>
-
-</div>
-
 </div>
 </div>
 
