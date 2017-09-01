@@ -112,7 +112,6 @@ def get_family_data(family):
 				rxnList.append((family, mechLines[k+m]))
 
 	features = ['H2', 'Sirad_H', 'Sirad_Si_H', 'Sid_H', 'Sid_Si_H', 'sil_H2', 'sil_rad', 'sil_d', 'Success Code']
-	data = []
 
 	for reactionTuple in rxnList:
 		rxnFamily, reactionLine = reactionTuple
@@ -175,8 +174,6 @@ def get_family_data(family):
 								break
 
 				if gotOne:
-					# features = [['H2', 'Sirad_H', 'Sirad_Si_H', 'Sid_H', 'Sid_Si_H', 'sil_H2', 'sil_rad', 'sil_d', 'Success Code']]
-					# Get the features
 					features_for_reaction = get_features(features, reaction)
 					features_for_reaction['Success Code'] = get_success(family, possibleFolders)
 					data.append(features_for_reaction)
