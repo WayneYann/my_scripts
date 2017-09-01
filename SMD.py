@@ -32,10 +32,6 @@ if not os.path.exists(os.path.join(db_folder, args.family, args.solvent, 'traini
 output_file = os.path.join(db_folder, args.family, args.solvent, 'training', 'solvationReactions.py')
 output_dict = os.path.join(db_folder, args.family, args.solvent, 'training', 'solvationDictionary.txt')
 
-#print data_dir
-#print data_file
-#print output_file
-
 out = open(output_file, 'w+')
 out.write("""
 #!/usr/bin/env python
@@ -55,18 +51,46 @@ unique = {}
 if args.family == "H_Abstraction":
     data = [["X_rad_count",
 "X_lp_count",
-"X_atomType",
-"X_neighborC",
-"X_neighborO",
-"X_neighborH",
-"X_neighborN",
+"X_element",
+"X_bonds",
 "Y_rad_count",
 "Y_lp_count",
-"Y_atomType",
-"Y_neighborC",
-"Y_neighborO",
-"Y_neighborH",
-"Y_neighborN",
+"Y_element",
+"Y_bonds",
+'X_CO',
+ 'X_CS',
+ 'X_Cb',
+ 'X_Cbf',
+ 'X_Cd',
+ 'X_Cdd',
+ 'X_Cs',
+ 'X_Ct',
+ 'X_H',
+ 'X_N3b',
+ 'X_N3d',
+ 'X_N3s',
+ 'X_N3t',
+ 'X_Oa',
+ 'X_Od',
+ 'X_Os',
+ 'X_Ot',
+ 'Y_CO',
+ 'Y_CS',
+ 'Y_Cb',
+ 'Y_Cbf',
+ 'Y_Cd',
+ 'Y_Cdd',
+ 'Y_Cs',
+ 'Y_Ct',
+ 'Y_H',
+ 'Y_N3b',
+ 'Y_N3d',
+ 'Y_N3s',
+ 'Y_N3t',
+ 'Y_Oa',
+ 'Y_Od',
+ 'Y_Os',
+ 'Y_Ot',
 "barrier_correction"]]
 
 if args.family == "intra_H_migration":
@@ -171,7 +195,7 @@ for subdir, dirs, files in os.walk(data_dir):
     for line in lines:
        if line.startswith("Difference"):
           text, barrierCorrection = line.split("= ")
-          if abs(float(barrierCorrection)) > 10.0:
+          if abs(float(barrierCorrection)) > 50.0:
               print reactionString
 
     out = open(output_file, 'a')
@@ -208,6 +232,27 @@ for subdir, dirs, files in os.walk(data_dir):
             d.write(my_reaction.products[indP].toAdjacencyList() + '\n')
             d.close()
 
+    x_atTypes = {
+    'Cs' : 0,
+    'Cd' : 0,
+    'Cdd': 0,
+    'Ct' : 0,
+    'CO' : 0,
+    'Cb' : 0,
+    'Cbf': 0,
+    'CS' : 0,
+    'H'  : 0,
+    'Os' : 0,
+    'Od' : 0,
+    'Oa' : 0,
+    'Ot' : 0,
+    'N3s': 0,
+    'N3d': 0,
+    'N3t': 0,
+    'N3b': 0 }
+
+    y_atTypes = x_atTypes.copy()
+
     if args.family == "H_Abstraction":
         for m in my_reaction.reactants:
             try:
@@ -223,34 +268,37 @@ for subdir, dirs, files in os.walk(data_dir):
         x_rad = x_atom.radicalElectrons
         x_lp = x_atom.lonePairs
         x_atomType = x_atom.atomType.label
-        x_neighborC = 0
-        x_neighborO = 0
-        x_neighborH = 0
-        x_neighborN = 0
-        for neighbor in x_neighbors:
-            if neighbor.element.symbol is 'C': x_neighborC += 1
-            elif neighbor.element.symbol is 'H': x_neighborH += 1
-            elif neighbor.element.symbol is 'O': x_neighborO += 1
-            elif neighbor.element.symbol is 'N': x_neighborN += 1
-            else: print "Encountered {0}; need a new attribute!".format(neighbor.element.symbol)
+        x_element = x_atom.element.symbol
+        if len(x_atom.bonds) > 0:
+            x_bonds = "".join(sorted([x_atom.bonds[b].order for b in x_atom.bonds]))
+        else:
+            x_bonds = "-"
+        for bond in x_atom.bonds:
+            atom_type = bond.atomType.label
+            x_atTypes[atom_type] += 1
+        x_neighbors = [a[1] for a in sorted(x_atTypes.items())]
 
         y_rad = y_atom.radicalElectrons
         y_lp = y_atom.lonePairs
         y_atomType = y_atom.atomType.label
-        y_neighborC = 0
-        y_neighborO = 0
-        y_neighborH = 0
-        y_neighborN = 0
-        for neighbor in y_neighbors:
-            if neighbor.element.symbol is 'C': y_neighborC += 1
-            elif neighbor.element.symbol is 'H': y_neighborH += 1
-            elif neighbor.element.symbol is 'O': y_neighborO += 1
-            elif neighbor.element.symbol is 'N': y_neighborN += 1
-            else: print "Encountered {0}; need a new attribute!".format(neighbor.element.symbol)
+        y_element = y_atom.element.symbol
+        if len(y_atom.bonds) > 0:
+            y_bonds = "".join(sorted([y_atom.bonds[b].order for b in y_atom.bonds]))
+        else:
+            y_bonds = "-"
+        for bond in y_atom.bonds:
+            atom_type = bond.atomType.label
+            y_atTypes[atom_type] += 1
+        y_neighbors = [a[1] for a in sorted(y_atTypes.items())]
 
-        data.append([x_rad, x_lp, x_atomType, x_neighborC, x_neighborO, x_neighborH, x_neighborN, y_rad, y_lp, y_atomType, y_neighborC, y_neighborO, y_neighborH, y_neighborN, barrierCorrection])
-
+        #data.append([x_rad, x_lp, x_atomType, x_neighborC, x_neighborO, x_neighborH, x_neighborN, y_rad, y_lp, y_atomType, y_neighborC, y_neighborO, y_neighborH, y_neighborN, barrierCorrection])
+        #data.append([x_rad, x_lp, x_element, x_bonds, x_neighborC, x_neighborO, x_neighborH, x_neighborN, y_rad, y_lp, y_element, y_bonds, y_neighborC, y_neighborO, y_neighborH, y_neighborN, barrierCorrection])
+        this_data = [x_rad, x_lp, x_element, x_bonds, y_rad, y_lp, y_element, y_bonds]
+        this_data.extend(x_neighbors)
+        this_data.extend(y_neighbors)
+        this_data.append(barrierCorrection)
+        data.append(this_data)
     if args.family == "intra_H_migration":
         #other stuff
-        data.append()
-pd.DataFrame(data[1:], columns=data[0]).to_csv('data_neighbors.csv')
+        data.append([])
+pd.DataFrame(data[1:], columns=data[0]).to_csv('data_h_abs_water.csv')
