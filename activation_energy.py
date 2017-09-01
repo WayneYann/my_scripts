@@ -5,7 +5,7 @@ import argparse
 import collections
 import os
 
-solventList = ['', '_n-octane', '_water', "_benzene", "_pyridine", "_tetrahydrofuran", "_dichloromethane", "_acetonitrile", "_dimethylsulfoxide"]
+solventList = ['', '_n-Dodecane']#'_n-octane', '_water', "_benzene", "_pyridine", "_tetrahydrofuran", "_dichloromethane", "_acetonitrile", "_dimethylsulfoxide"]
 
 clParser = argparse.ArgumentParser(description="""
 Given a reaction family, will get TS energies from Gaussian output files in
@@ -17,11 +17,13 @@ clParser.add_argument("-f", "--family", default="H_Abstraction", help="Name of t
 #optional stuff that tells you about the reacting site like CH or prim...
 #""")
 args = clParser.parse_args()
-directory = os.path.join("/home/slakman.b/Gaussian/SMD/", "09_2016")#args.family)
+directory = os.path.join("/gss_gpfs_scratch/cain.ja/QMfiles/Reactions", args.family)
+species_directory = os.path.join("/gss_gpfs_scratch/cain.ja/QMscratch/Species", args.family)
 
 # Go through all of the reactions for that family
 for rxn_folder in os.listdir(directory):
     rxn_directory = os.path.join(directory, rxn_folder)
+
     if '+' in rxn_folder: # bimolecular
         r1 = rxn_folder.split('_')[0].split('+')[0]
         r2 = rxn_folder.split('_')[0].split('+')[1]
@@ -46,17 +48,22 @@ for rxn_folder in os.listdir(directory):
             try:
                 rParse = rParse.parse()
             except AssertionError:
+                with open(outputDataFile, 'w') as parseFile:
+                    parseFile.write('AssertionError on reactant')
                 continue
             try:
                 tsParse = tsParse.parse()
             except AssertionError:
+                with open(outputDataFile, 'w') as parseFile:
+                    parseFile.write('AssertionError on TS')
                 continue
 
             # In Hartrees
             try:
                reactantE = rParse.scfenergies[-1]/27.2113845
             except:
-               import ipdb; ipdb.set_trace()
+               with open(outputDataFile, 'w') as parseFile:
+                   parseFile.write('Exception on parsing reactant energy')
             tsE = tsParse.scfenergies[-1]/27.2113845
             tsVib = tsParse.vibfreqs[0]
 
@@ -65,6 +72,8 @@ for rxn_folder in os.listdir(directory):
                 try:
                     r2Parse = r2Parse.parse()
                 except AssertionError:
+                    with open(outputDataFile, 'w') as parseFile:
+                        parseFile.write('AssertionError on reactant')
                     continue
                 reactant2E = r2Parse.scfenergies[-1]/27.2113845
             else:
@@ -76,6 +85,8 @@ for rxn_folder in os.listdir(directory):
             try:
                 diffEa = Ea - gasEa
             except NameError:
+                with open(outputDataFile, 'w') as parseFile:
+                    parseFile.write('NameError when getting diffEa')
                 continue
 
             rString = 'Reactant energy = ' + str(reactantE)
